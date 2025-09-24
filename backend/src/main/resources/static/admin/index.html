@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Admin · Conecta Pinamar</title>
+    <style>
+        :root{
+          --bg:#0b0c10; --panel:#121318; --soft:#1a1c23; --muted:#8a8fa3; --primary:#F7D34A; --ok:#22c55e; --bad:#ef4444;
+          --ring:rgba(247,211,74,.35);
+        }
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{margin:0;font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:linear-gradient(180deg,#0b0c10,#0e1117);color:#e5e7eb}
+        a{color:inherit}
+        header{position:sticky;top:0;z-index:10;backdrop-filter:saturate(180%) blur(10px);background:rgba(13,15,22,.7);border-bottom:1px solid rgba(255,255,255,.06)}
+        .bar{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;max-width:1200px;margin:0 auto}
+        .brand{display:flex;gap:10px;align-items:center;font-weight:800;letter-spacing:.02em}
+        .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px var(--ring)}
+        .cred{display:flex;gap:8px;align-items:center;color:#cbd5e1}
+        .cred input{background:#0f1219;border:1px solid #212533;color:#e5e7eb;border-radius:10px;height:34px;padding:0 10px}
+        .btn{background:#1d2330;border:1px solid #2a3142;color:#e5e7eb;border-radius:10px;height:34px;padding:0 12px;cursor:pointer}
+        .btn.primary{background:var(--primary);color:#111;border-color:#a58d28}
+        .btn.ghost{background:transparent;border-color:#2a3142}
+        .wrap{max-width:1200px;margin:0 auto;padding:16px}
+        nav{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+        .tab{background:#121621;border:1px solid #222a3a;color:#cbd5e1;border-radius:999px;padding:6px 12px;cursor:pointer}
+        .tab.active{background:#1f283a;border-color:#2f3a54;color:#fff;box-shadow:0 0 0 4px rgba(47,58,84,.2)}
+        .panel{display:none;margin-top:8px}
+        .panel.active{display:block}
+
+        .card{background:var(--panel);border:1px solid #1f2533;border-radius:16px;padding:14px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+        h2{margin:0 0 10px 0;font-size:16px;letter-spacing:.02em;color:#fff}
+        .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+        input,select{background:#0f1219;border:1px solid #212533;color:#e5e7eb;border-radius:10px;height:36px;padding:0 10px}
+        input[type="file"]{padding:6px 10px;height:auto}
+        label{color:#b9c0d0}
+        table{width:100%;border-collapse:collapse;background:#0f1219;border-radius:12px;overflow:hidden}
+        th,td{padding:10px;border-bottom:1px solid #1e2431;color:#d2d7e3;vertical-align:middle}
+        th{background:#151a25;color:#a9b1c4;text-align:left}
+        tr:hover td{background:#121827}
+        .pill{display:inline-block;border:1px solid #2b3244;background:#171c27;color:#c8cede;border-radius:999px;padding:2px 8px;margin-right:6px}
+        .thumb{width:54px;height:40px;object-fit:cover;border-radius:8px;border:1px solid #2a3142;background:#0b0d13}
+
+        .items{display:flex;gap:8px;flex-wrap:wrap}
+        .item{background:#151a20;border:1px dashed #2a3142;border-radius:10px;padding:8px 10px;cursor:grab;color:#cbd5e1}
+        .item:active{cursor:grabbing}
+        .dropzone{border:2px dashed #3b455e;border-radius:12px;padding:16px;text-align:center;background:#0f1219;color:#9aa4b8}
+
+        .ok{color:var(--ok)} .bad{color:var(--bad)}
+        /* Que las listas tengan área para recibir drops aunque estén vacías */
+        .items{
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+          min-height:110px;   /* clave: hace “clickable” toda el área */
+          padding:6px;        /* suave */
+          align-content:flex-start;
+        }
+
+    </style>
+</head>
+<body>
+<header>
+    <div class="bar">
+        <div class="brand"><span class="dot"></span> <span>Admin · Conecta Pinamar</span></div>
+        <div class="cred">
+            <label>Usuario <input id="u" value="admin"></label>
+            <label>Clave <input id="p" type="password" value="admin"></label>
+            <button class="btn" id="saveCreds">Guardar credenciales</button>
+            <span id="authState" class="pill">sin auth</span>
+        </div>
+    </div>
+</header>
+
+<div class="wrap">
+    <nav>
+        <button class="tab" data-t="cats">Categorías</button>
+        <button class="tab" data-t="sellers">Sellers</button>
+        <button class="tab" data-t="products">Productos</button>
+        <button class="tab" data-t="sections">Secciones</button>
+        <button class="tab" data-t="groups">Grupos</button>
+    </nav>
+
+    <!-- Categorías -->
+    <section id="cats" class="panel">
+        <div class="card">
+            <h2>Categorías · Crear</h2>
+            <div class="row">
+                <input id="catName" placeholder="Nombre">
+                <input id="catDesc" placeholder="Descripción" style="min-width:280px">
+                <input id="catFile" type="file" accept="image/*">
+                <button class="btn primary" id="catCreate">Crear</button>
+                <input id="catQ" placeholder="Buscar…" style="margin-left:auto">
+                <button class="btn ghost" id="catReload">Buscar</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Listado</h2>
+            <div id="catTable"></div>
+        </div>
+    </section>
+
+    <!-- Sellers -->
+    <section id="sellers" class="panel">
+        <div class="card">
+            <h2>Sellers · Crear</h2>
+            <div class="row">
+                <input id="sName" placeholder="Nombre">
+                <input id="sDesc" placeholder="Descripción" style="min-width:240px">
+                <input id="sLoc" placeholder="Ubicación">
+                <input id="sPhone" placeholder="Teléfono">
+                <input id="sMail" placeholder="Email">
+                <input id="sFile" type="file" accept="image/*">
+                <button class="btn primary" id="sCreate">Crear</button>
+                <input id="sQ" placeholder="Buscar…" style="margin-left:auto">
+                <button class="btn ghost" id="sReload">Buscar</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Listado</h2>
+            <div id="sTable"></div>
+        </div>
+    </section>
+
+    <!-- Productos -->
+    <section id="products" class="panel">
+        <div class="card">
+            <h2>Productos · Crear / Editar</h2>
+            <div class="row">
+                <input id="pId" type="hidden">
+                <input id="pName" placeholder="Nombre" style="min-width:240px">
+                <input id="pPrice" type="number" step="0.01" placeholder="Precio">
+                <input id="pPopularity" type="number" step="1" placeholder="Popularidad">
+                <select id="pSeller"></select>
+                <select id="pCats" multiple size="4" style="min-width:200px"></select>
+                <input id="pFile" type="file" accept="image/*">
+                <button class="btn primary" id="pSave">Guardar</button>
+                <button class="btn ghost" id="pReset">Limpiar</button>
+                <input id="pQ" placeholder="Buscar…" style="margin-left:auto">
+                <button class="btn ghost" id="pReload">Buscar</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Listado</h2>
+            <div id="pTable"></div>
+        </div>
+    </section>
+
+    <!-- Secciones -->
+    <section id="sections" class="panel">
+        <div class="card">
+            <h2>Secciones · Crear</h2>
+            <div class="row">
+                <input id="secName" placeholder="Nombre">
+                <input id="secSlug" placeholder="Slug único">
+                <input id="secOrder" type="number" placeholder="Orden">
+                <label style="display:flex;align-items:center;gap:6px">
+                    <input id="secEnabled" type="checkbox" checked> Habilitada
+                </label>
+                <button class="btn primary" id="secCreate">Crear</button>
+                <input id="secQ" placeholder="Buscar…" style="margin-left:auto">
+                <button class="btn ghost" id="secReload">Buscar</button>
+            </div>
+        </div>
+        <div class="card">
+            <h2>Listado</h2>
+            <div id="secTable"></div>
+        </div>
+    </section>
+
+    <!-- Grupos -->
+    <section id="groups" class="panel">
+        <div class="card">
+            <h2>Grupos · Crear</h2>
+            <div class="row">
+                <input id="gTitle" placeholder="Título">
+                <input id="gVariant" placeholder="Variante (opcional)">
+                <input id="gOrder" type="number" placeholder="Orden">
+                <select id="gSection"></select>
+                <button class="btn primary" id="gCreate">Crear</button>
+                <span class="pill" id="gInfo">sin grupo cargado</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Gestionar Items · Drag & Drop</h2>
+            <div class="row">
+                <label>ID Grupo <input id="gId" type="number" placeholder="..."></label>
+                <button class="btn" id="gLoad">Cargar</button>
+                <button class="btn bad" id="gDelete">Borrar grupo</button>
+                <span class="pill">Arrastrá para agregar / quitar</span>
+            </div>
+
+            <div class="row" style="gap:16px; align-items:flex-start">
+                <!-- Columna Disponibles -->
+                <div style="flex:1; min-width:320px">
+                    <div class="row" style="margin-top:0">
+                        <input id="gAvailQ" placeholder="Buscar disponibles…" style="flex:1">
+                        <button class="btn ghost" id="gAvailSearch">Buscar</button>
+                    </div>
+                    <div class="dropzone">
+                        <strong>Disponibles</strong>
+                        <div id="gAvailable" class="items" data-list="available"></div>
+                    </div>
+                </div>
+
+                <!-- Columna En el grupo -->
+                <div style="flex:1; min-width:320px">
+                    <div class="dropzone">
+                        <strong>En el grupo</strong>
+                        <div id="gItems" class="items" data-list="group"></div>
+                    </div>
+                    <div class="row" style="margin-top:12px">
+                        <button class="btn ok" id="gSave">Guardar (reemplazar items)</button>
+                        <button class="btn" id="gUpdate">Actualizar</button>
+                        <button class="btn" id="gSaveOrder">Sólo guardar orden</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    /* ===== Infra básica ===== */
+    const S = {
+      auth: localStorage.getItem('admAuth') || '',
+      setAuth(u,p){ this.auth='Basic '+btoa(u+':'+p); localStorage.setItem('admAuth',this.auth); renderAuth(); },
+      h(extra){ return Object.assign({'Authorization':this.auth}, extra||{}); },
+      async api(url,opts={}){
+        const headers = this.h(opts.headers);
+        const isJSON = !(opts.body instanceof FormData);
+        if(isJSON) headers['Content-Type']='application/json';
+        const res = await fetch(url, {method:'GET',...opts,headers});
+        if(!res.ok){
+          const t = await res.text().catch(()=>String(res.status));
+          throw new Error(t || res.statusText);
+        }
+        const ct = res.headers.get('content-type')||'';
+        return ct.includes('application/json') ? res.json() : res.text();
+      },
+      upload(file){
+        const fd = new FormData(); fd.append('file', file);
+        return fetch('/api/admin/upload', { method:'POST', headers:this.h(), body:fd }).then(r=>r.json());
+      }
+    };
+
+    function renderAuth(){
+      const el = document.getElementById('authState');
+      el.textContent = S.auth ? 'auth OK' : 'sin auth';
+      el.className = 'pill '+(S.auth?'':'bad');
+    }
+    renderAuth();
+    document.getElementById('saveCreds').onclick = ()=>{
+      const u=document.getElementById('u').value.trim();
+      const p=document.getElementById('p').value.trim();
+      S.setAuth(u,p);
+      alert('Credenciales guardadas');
+    };
+
+    /* ===== Tabs ===== */
+    const tabs = [...document.querySelectorAll('.tab')];
+    const panels = [...document.querySelectorAll('.panel')];
+    tabs.forEach(t=>t.addEventListener('click', ()=>{
+      tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
+      panels.forEach(p=>p.classList.remove('active'));
+      document.getElementById(t.dataset.t).classList.add('active');
+      // cargar datos iniciales de cada vista
+      if(t.dataset.t==='cats') cats.reload();
+      if(t.dataset.t==='sellers') sellers.reload();
+      if(t.dataset.t==='products') products.init();
+      if(t.dataset.t==='sections') sections.reload();
+      if(t.dataset.t==='groups') groups.init();
+    }));
+    tabs[0].click(); // abrir Categorías por defecto
+
+    /* ===== Helpers UI ===== */
+    const el = id => document.getElementById(id);
+    const esc = s => (s??'').replace(/[<>&"]/g, c=>({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' }[c]));
+
+    /* ===== Categorías ===== */
+    const cats = {
+      async list(q=''){ return S.api(`/api/admin/categories?q=${encodeURIComponent(q)}&page=0&size=50`); },
+      row(c){ return `
+        <tr>
+          <td>${c.id}</td>
+          <td><input data-id="${c.id}" class="catN" value="${esc(c.name)}"></td>
+          <td><input data-id="${c.id}" class="catD" value="${esc(c.description||'')}"></td>
+          <td>${c.imageUrl?`<img src="${esc(c.imageUrl)}" class="thumb">`:''}<br><input type="file" data-id="${c.id}" class="catF" accept="image/*"></td>
+          <td>
+            <button class="btn catUp" data-id="${c.id}">Guardar</button>
+            <button class="btn bad catDel" data-id="${c.id}">Borrar</button>
+          </td>
+        </tr>`; },
+      bind(container){
+        container.querySelectorAll('.catUp').forEach(btn=>btn.onclick=async e=>{
+          const id=+e.target.dataset.id;
+          const name=container.querySelector(`.catN[data-id="${id}"]`).value;
+          const desc=container.querySelector(`.catD[data-id="${id}"]`).value;
+          const file=container.querySelector(`.catF[data-id="${id}"]`).files[0];
+          let url=null; if(file) url=(await S.upload(file)).url;
+          await S.api(`/api/admin/categories/${id}`, { method:'PUT', body:JSON.stringify({ name, description:desc, imageUrl:url }) });
+          cats.reload();
+        });
+        container.querySelectorAll('.catDel').forEach(btn=>btn.onclick=async e=>{
+          const id=+e.target.dataset.id;
+          try{ await S.api(`/api/admin/categories/${id}`, { method:'DELETE' }); cats.reload(); }
+          catch(err){ alert('No se puede borrar (en uso)'); }
+        });
+      },
+      async reload(){
+        const q = el('catQ').value.trim();
+        const data = await cats.list(q);
+        const html = `
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Imagen</th><th>Acciones</th></tr></thead>
+            <tbody>${data.content.map(cats.row).join('')}</tbody>
+          </table>`;
+        el('catTable').innerHTML = html;
+        cats.bind(el('catTable'));
+      }
+    };
+    el('catCreate').onclick = async ()=>{
+      let url=null; const f=el('catFile').files[0]; if(f) url=(await S.upload(f)).url;
+      const body={ name:el('catName').value, description:el('catDesc').value, imageUrl:url };
+      await S.api('/api/admin/categories', { method:'POST', body:JSON.stringify(body) });
+      el('catName').value=''; el('catDesc').value=''; el('catFile').value='';
+      cats.reload();
+    };
+    el('catReload').onclick = ()=>cats.reload();
+
+    /* ===== Sellers ===== */
+    const sellers = {
+      async list(q=''){ return S.api(`/api/admin/sellers?q=${encodeURIComponent(q)}&page=0&size=50`); },
+      row(s){ return `
+        <tr>
+          <td>${s.id}</td>
+          <td><input data-id="${s.id}" class="sN" value="${esc(s.name)}"></td>
+          <td><input data-id="${s.id}" class="sD" value="${esc(s.description||'')}"></td>
+          <td><input data-id="${s.id}" class="sL" value="${esc(s.location||'')}"></td>
+          <td><input data-id="${s.id}" class="sP" value="${esc(s.contactPhone||'')}"></td>
+          <td><input data-id="${s.id}" class="sE" value="${esc(s.contactEmail||'')}"></td>
+          <td>${s.imageUrl?`<img src="${esc(s.imageUrl)}" class="thumb">`:''}<br><input type="file" data-id="${s.id}" class="sF" accept="image/*"></td>
+          <td>
+            <button class="btn sUp" data-id="${s.id}">Guardar</button>
+            <button class="btn bad sDel" data-id="${s.id}">Borrar</button>
+          </td>
+        </tr>`; },
+      bind(container){
+        container.querySelectorAll('.sUp').forEach(btn=>btn.onclick=async e=>{
+          const id=+e.target.dataset.id;
+          const name=container.querySelector(`.sN[data-id="${id}"]`).value;
+          const description=container.querySelector(`.sD[data-id="${id}"]`).value;
+          const location=container.querySelector(`.sL[data-id="${id}"]`).value;
+          const contactPhone=container.querySelector(`.sP[data-id="${id}"]`).value;
+          const contactEmail=container.querySelector(`.sE[data-id="${id}"]`).value;
+          const file=container.querySelector(`.sF[data-id="${id}"]`).files[0];
+          let url=null; if(file) url=(await S.upload(file)).url;
+          await S.api(`/api/admin/sellers/${id}`, { method:'PUT', body:JSON.stringify({ name, description, location, contactPhone, contactEmail, imageUrl:url }) });
+          sellers.reload();
+        });
+        container.querySelectorAll('.sDel').forEach(btn=>btn.onclick=async e=>{
+          const id=+e.target.dataset.id;
+          try{ await S.api(`/api/admin/sellers/${id}`, { method:'DELETE' }); sellers.reload(); }
+          catch(err){ alert('No se puede borrar (en uso)'); }
+        });
+      },
+      async reload(){
+        const q = el('sQ').value.trim();
+        const data = await sellers.list(q);
+        const html = `
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Desc</th><th>Ubicación</th><th>Tel</th><th>Email</th><th>Imagen</th><th>Acciones</th></tr></thead>
+            <tbody>${data.content.map(sellers.row).join('')}</tbody>
+          </table>`;
+        el('sTable').innerHTML = html;
+        sellers.bind(el('sTable'));
+      }
+    };
+    el('sCreate').onclick = async ()=>{
+      let url=null; const f=el('sFile').files[0]; if(f) url=(await S.upload(f)).url;
+      const body={ name:el('sName').value, description:el('sDesc').value, location:el('sLoc').value, contactPhone:el('sPhone').value, contactEmail:el('sMail').value, imageUrl:url };
+      await S.api('/api/admin/sellers', { method:'POST', body:JSON.stringify(body) });
+      ['sName','sDesc','sLoc','sPhone','sMail'].forEach(id=>el(id).value=''); el('sFile').value='';
+      sellers.reload();
+    };
+    el('sReload').onclick = ()=>sellers.reload();
+
+    /* ===== Productos ===== */
+    const products = {
+      state:{ loaded:false, cats:[], sellers:[] },
+      async init(){
+        if(!this.state.loaded){
+          const [c,s] = await Promise.all([
+            S.api('/api/admin/categories?page=0&size=200'),
+            S.api('/api/admin/sellers?page=0&size=200')
+          ]);
+          this.state.cats = c.content; this.state.sellers = s.content; this.fillSelectors();
+          this.state.loaded = true;
+        }
+        this.reload();
+      },
+      fillSelectors(){
+        el('pSeller').innerHTML = products.state.sellers.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+        el('pCats').innerHTML = products.state.cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+        // groups helpers
+        el('gSection').innerHTML = ''; // lo llena sections.init()
+      },
+      row(p){ return `
+        <tr>
+          <td>${p.id}</td>
+          <td>${esc(p.name)}</td>
+          <td>${p.price??''}</td>
+          <td>${esc(p.seller?.name||'')}</td>
+          <td>${p.imageUrl?`<img src="${esc(p.imageUrl)}" class="thumb">`:''}</td>
+          <td>
+            <button class="btn pEdit" data-id="${p.id}">Editar</button>
+            <button class="btn bad pDel" data-id="${p.id}">Borrar</button>
+          </td>
+        </tr>`; },
+      bind(container, data){
+        container.querySelectorAll('.pDel').forEach(btn=>btn.onclick=async e=>{
+          const id=+e.target.dataset.id;
+          try{ await S.api(`/api/admin/products/${id}`, { method:'DELETE' }); products.reload(); }
+          catch(err){ alert('No se puede borrar (está en una agrupación)'); }
+        });
+        container.querySelectorAll('.pEdit').forEach(btn=>btn.onclick=e=>{
+          const id=+e.target.dataset.id;
+          const p = data.find(x=>x.id===id); if(!p) return;
+          el('pId').value=p.id; el('pName').value=p.name||''; el('pPrice').value=p.price??''; el('pPopularity').value=p.popularity??'';
+          el('pSeller').value=p.seller?.id??'';
+          const catIds = new Set((p.categories||[]).map(c=>String(c.id)));
+          [...el('pCats').options].forEach(o=>o.selected = catIds.has(o.value));
+          window.scrollTo({ top:0, behavior:'smooth' });
+        });
+      },
+      async list(q=''){ return S.api(`/api/admin/products?q=${encodeURIComponent(q)}&page=0&size=50`); },
+      async reload(){
+        const q = el('pQ').value.trim();
+        const data = await products.list(q);
+        const html = `
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Seller</th><th>Imagen</th><th>Acciones</th></tr></thead>
+            <tbody>${data.content.map(products.row).join('')}</tbody>
+          </table>`;
+        el('pTable').innerHTML = html;
+        products.bind(el('pTable'), data.content);
+      }
+    };
+    el('pSave').onclick = async ()=>{
+      const id = el('pId').value.trim();
+      let url=null; const f=el('pFile').files[0]; if(f) url=(await S.upload(f)).url;
+      const catIds = [...el('pCats').selectedOptions].map(o=>Number(o.value));
+      const body = {
+        name: el('pName').value, description: '', imageUrl:url,
+        price: Number(el('pPrice').value||0),
+        popularity: Number(el('pPopularity').value||0),
+        sellerId: Number(el('pSeller').value),
+        categoryIds: catIds
+      };
+      if(id){
+        await S.api(`/api/admin/products/${id}`, { method:'PUT', body:JSON.stringify(body) });
+      }else{
+        await S.api('/api/admin/products', { method:'POST', body:JSON.stringify(body) });
+      }
+      ['pId','pName','pPrice','pPopularity'].forEach(id=>el(id).value=''); el('pFile').value='';
+      products.reload();
+    };
+    el('pReset').onclick = ()=>{ ['pId','pName','pPrice','pPopularity'].forEach(id=>el(id).value=''); el('pFile').value=''; };
+    el('pReload').onclick = ()=>products.reload();
+
+    /* ===== Secciones ===== */
+    const sections = {
+      async list(q=''){ return S.api(`/api/admin/sections?q=${encodeURIComponent(q)}&page=0&size=50`); },
+      row(s){ return `
+        <tr>
+          <td>${s.id}</td>
+          <td>${esc(s.name)}</td>
+          <td><span class="pill">${esc(s.slug)}</span></td>
+          <td>${s.orderIndex??0}</td>
+          <td>${s.enabled?'✓':''}</td>
+          <td><button class="btn bad secDel" data-id="${s.id}">Borrar</button></td>
+        </tr>`; },
+      bind(container){
+        container.querySelectorAll('.secDel').forEach(btn=>btn.onclick=async e=>{
+          const id=+e.target.dataset.id;
+          try{ await S.api(`/api/admin/sections/${id}`, { method:'DELETE' }); sections.reload(); }
+          catch(err){ alert('No se puede borrar (en uso)'); }
+        });
+      },
+      async reload(){
+        const q = el('secQ').value.trim();
+        const data = await sections.list(q);
+        el('secTable').innerHTML = `
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Slug</th><th>Orden</th><th>On</th><th>Acciones</th></tr></thead>
+            <tbody>${data.content.map(sections.row).join('')}</tbody>
+          </table>`;
+        sections.bind(el('secTable'));
+        // llenar select de grupos
+        el('gSection').innerHTML = data.content.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+      }
+    };
+    el('secCreate').onclick = async ()=>{
+      const body={ name:el('secName').value, slug:el('secSlug').value, orderIndex:Number(el('secOrder').value||0), enabled:el('secEnabled').checked };
+      await S.api('/api/admin/sections', { method:'POST', body:JSON.stringify(body) });
+      ['secName','secSlug','secOrder'].forEach(id=>el(id).value=''); el('secEnabled').checked=true;
+      sections.reload();
+    };
+    el('secReload').onclick = ()=>sections.reload();
+
+    /* ===== Grupos ===== */
+const groups = {
+  state:{ products:[], groupIds:new Set() },
+
+  async init(){
+    // cargar secciones para combo
+    const secs = await S.api('/api/admin/sections?page=0&size=200');
+    el('gSection').innerHTML = secs.content.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    // cargar productos disponibles (catálogo completo)
+    const prods = await S.api('/api/admin/products?page=0&size=500');
+    this.state.products = prods.content;
+    this.renderAvailable();
+    this.bind();
+  },
+
+  // Render disponibles = todos menos los que están en el grupo actual
+  renderAvailable(){
+    const q = el('gAvailQ').value.trim().toLowerCase();
+    const cont = el('gAvailable');
+    const idsInGroup = this.state.groupIds;
+    cont.innerHTML = this.state.products
+      .filter(p => !idsInGroup.has(p.id))
+      .filter(p => !q || String(p.name||'').toLowerCase().includes(q))
+      .map(p=>this.tag(p.id)).join('');
+    dndInitLists(); // re-bind DnD
+  },
+
+  // Render “en el grupo” a partir de lista de ids
+  renderGroup(listIds){
+    const cont = el('gItems');
+    cont.innerHTML = listIds.map(id => this.tag(id)).join('');
+    this.state.groupIds = new Set(listIds);
+    dndInitLists();
+  },
+
+  // chip draggable
+  tag(id){ return `<div class="item" draggable="true" data-id="${id}">#${id}</div>`; }
+};
+
+el('gCreate').onclick = async ()=>{
+  const body={ title:el('gTitle').value, variant:el('gVariant').value, orderIndex:Number(el('gOrder').value||0), enabled:true, sectionId:Number(el('gSection').value) };
+  const g = await S.api('/api/admin/product-groups', { method:'POST', body:JSON.stringify(body) });
+  el('gId').value = g.id; el('gInfo').textContent = `grupo #${g.id}`;
+  alert('Grupo creado con id '+g.id);
+};
+
+el('gLoad').onclick = async ()=>{
+  const id = Number(el('gId').value); if(!id) return alert('Ingresá un ID');
+  const g = await S.api(`/api/admin/product-groups/${id}`);
+  el('gInfo').textContent = `grupo #${g.id} (${(g.products||[]).length} items)`;
+  const listIds = (g.products||[]).map(p=>p.id);
+  groups.renderGroup(listIds);
+  groups.renderAvailable(); // recalcula disponibles
+};
+
+el('gDelete').onclick = async ()=>{
+  const id = Number(el('gId').value); if(!id) return;
+  if(!confirm('¿Borrar grupo '+id+'?')) return;
+  await S.api(`/api/admin/product-groups/${id}`, { method:'DELETE' });
+  el('gItems').innerHTML=''; el('gAvailable').innerHTML=''; el('gInfo').textContent='sin grupo cargado'; el('gId').value='';
+  await groups.init();
+};
+
+el('gAvailSearch').onclick = ()=>groups.renderAvailable();
+
+el('gSave').onclick = async ()=>{
+  const id = Number(el('gId').value); if(!id) return;
+  const productIds = [...el('gItems').children].map(x=>Number(x.dataset.id));
+  await S.api(`/api/admin/product-groups/${id}/items`, { method:'PUT', body:JSON.stringify({ productIds }) });
+  alert('Items reemplazados');
+  groups.renderGroup(productIds);
+  groups.renderAvailable();
+};
+// “Actualizar” → persiste los items actuales del grupo (igual que Guardar, sin alert intrusivo)
+el('gUpdate').onclick = async ()=>{
+  const id = Number(el('gId').value);
+  if (!id) return alert('Ingresá un ID de grupo primero');
+
+  const productIds = [...el('gItems').children].map(x => Number(x.dataset.id));
+
+  await S.api(`/api/admin/product-groups/${id}/items`, {
+    method: 'PUT',
+    body: JSON.stringify({ productIds })
+  });
+
+  // refresco visual suave
+  groups.renderGroup(productIds);
+  groups.renderAvailable();
+
+  // actualiza el pill con el contador
+  const pill = document.getElementById('gInfo');
+  if (pill) pill.textContent = `grupo #${id} (${productIds.length} items)`;
+  alert('Actualizado');
+};
+
+
+el('gSaveOrder').onclick = async ()=>{
+  const id = Number(el('gId').value); if(!id) return;
+  const productIds = [...el('gItems').children].map(x=>Number(x.dataset.id));
+  await S.api(`/api/admin/product-groups/${id}/items/order`, { method:'PUT', body:JSON.stringify({ productIds }) });
+  alert('Orden guardado');
+};
+
+function dndInitLists(){
+  const availList = el('gAvailable');
+  const groupList = el('gItems');
+
+  const pairs = [
+    { zone: availList.closest('.dropzone'), list: availList },
+    { zone: groupList.closest('.dropzone'), list: groupList }
+  ];
+
+  // Todos los ítems (nuevos o existentes) deben ser “draggable”
+  document.querySelectorAll('.item').forEach(it=>{
+    it.addEventListener('dragstart', e=>{
+      e.dataTransfer.setData('text/plain', it.dataset.id);
+      it.classList.add('dragging');
+    });
+    it.addEventListener('dragend', ()=> it.classList.remove('dragging'));
+  });
+
+  // La zona punteada acepta el drop y decide dónde insertar en su lista interna
+  pairs.forEach(({zone, list})=>{
+    zone.addEventListener('dragover', e=>{
+      e.preventDefault();
+      const dragging = document.querySelector('.dragging');
+      if(!dragging) return;
+      const after = getAfter(list, e.clientY);
+      if(after == null) list.appendChild(dragging);
+      else list.insertBefore(dragging, after.nextSibling);
+    });
+
+    zone.addEventListener('drop', e=>{
+      e.preventDefault();
+      // Actualizá el set con lo que quedó en la columna de grupo
+      const idsGroup = new Set([...groupList.children].map(x=>Number(x.dataset.id)));
+      groups.state.groupIds = idsGroup;
+      groups.renderAvailable(); // recalcula “Disponibles” (saca los que ya están)
+      // si querés, refrescá el contador en el pill:
+      const count = groupList.children.length;
+      const pill = document.getElementById('gInfo');
+      if (pill && /grupo #\d+/.test(pill.textContent)) {
+        pill.textContent = pill.textContent.replace(/\(\d+ items?\)/,'').trim() + ` (${count} items)`;
+      }
+    });
+  });
+
+  function getAfter(container, mouseY){
+    const els = [...container.querySelectorAll('.item:not(.dragging)')];
+    return els.reduce((closest, child)=>{
+      const box = child.getBoundingClientRect();
+      const offset = mouseY - (box.top + box.height/2);
+      return (offset > 0 && offset < closest.offset) ? {offset, element: child} : closest;
+    }, {offset: Number.POSITIVE_INFINITY}).element || null;
+  }
+}
+
+
+
+    /* ===== Buscar por enter ===== */
+    ['catQ','sQ','pQ','secQ'].forEach(id=>el(id).addEventListener('keydown',e=>{
+      if(e.key==='Enter'){ e.preventDefault(); const t=id.slice(0,3);
+        if(t==='cat') cats.reload();
+        if(t==='sQ') sellers.reload();
+        if(t==='pQ') products.reload();
+        if(t==='sec') sections.reload();
+      }
+    }));
+</script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+/* ========== Base ========== */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+  color: #111;
+  background: #fff;
+}
+
+/* Títulos de sección (se reutiliza) */
+.title {
+  margin: 0;
+  padding: 24px 16px 12px 16px;
+  text-transform: uppercase;
+  border-top: 1px solid #eee;
+}
+
+/* ========== Header ========== */
+.header {
+  background: #f5f5f5;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr; /* logo a la izquierda, buscador a la derecha */
+  gap: 16px;
+  align-items: center;
+}
+
+/* Ahora el logo es IMAGEN, no texto */
+.logo {
+  display: block;
+  line-height: 0; /* quita espacio extra alrededor de la img */
+}
+.logo img {
+  height: 64px;     /* ajustá si querés más grande */
+  width: auto;
+  display: block;
+}
+@media (min-width: 900px) {
+  .logo img { height: 92px; }
+}
+
+/* ========== Search ========== */
+.cp-search-wrap { position: relative; max-width: 680px; }
+.cp-search-input {
+  width: 100%;
+  height: 44px;
+  border-radius: 999px;
+  padding: 0 16px;
+  background: #F7D34A;
+  border: 0;
+}
+.cp-search-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 20;
+}
+.cp-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #111;
+}
+.cp-search-item:hover { background: #fafafa; }
+.cp-search-item .thumb {
+  width: 40px; height: 40px;
+  object-fit: cover; border-radius: 8px;
+}
+.cp-search-item .b { font-weight: 800; }   /* categoría en negrita */
+.cp-search-item .i { font-style: italic; } /* negocio en cursiva */
+
+/* ========== Slider de CATEGORÍAS (círculos amarillos con imagen centrada) ========== */
+.cats {
+  display: flex;
+  gap: 12px;
+  padding: 8px 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 16px;
+}
+.cats::-webkit-scrollbar { display: none; }  /* oculta scrollbar en WebKit */
+
+.cat-chip {
+  --size: clamp(72px, 14vw, 96px);
+  flex: 0 0 var(--size);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: #F7D34A;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-decoration: none;
+  border: none;
+  outline: 0;
+  scroll-snap-align: start;
+  box-shadow: 0 1px 0 rgba(0,0,0,.06) inset;
+  cursor: pointer;
+}
+.cat-chip:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 2px;
+}
+.cat-chip img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;   /* mantiene proporción del ícono */
+  display: block;
+  pointer-events: none;  /* hace clickeable TODO el círculo, no solo la imagen */
+}
+
+/* ========== Slider de PRODUCTOS (cards solo imagen clickeable) ========== */
+.ps-root {
+  position: relative;
+  /* layout variables */
+  --gap: 12px;
+  --perPage: 1;                 /* mobile por defecto */
+  padding: 0 16px;              /* padding fuera del track para no generar "peek" */
+}
+
+@media (min-width: 600px)  { .ps-root { --perPage: 2; } }
+@media (min-width: 900px)  { .ps-root { --perPage: 3; } }
+/* si quisieras 4 en pantallas muy grandes, descomentá:
+@media (min-width: 1280px) { .ps-root { --perPage: 4; } }
+*/
+
+.ps-track {
+  display: flex;
+  overflow: auto;
+  gap: var(--gap);
+  scroll-snap-type: x mandatory;
+  /* sin padding aquí para que la "página" encaje exacto */
+  padding: 0;
+  scrollbar-width: none;
+}
+.ps-track::-webkit-scrollbar { display: none; }
+
+.ps-card {
+  /* EXACT: ancho calculado para que entren --perPage cards justas en el viewport */
+  flex: 0 0 calc((100% - (var(--gap) * (var(--perPage) - 1))) / var(--perPage));
+  scroll-snap-align: start;
+  scroll-snap-stop: always;      /* evita peeks al terminar el scroll */
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ps-card img {
+  width: 100%;
+  height: 28vh;
+  object-fit: cover;
+  display: block;
+}
+
+.ps-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: #000; color: #fff;
+}
+.ps-nav.prev { left: 8px; }
+.ps-nav.next { right: 8px; }
+
+/* --- Hover/focus: agrandar círculo e imagen --- */
+.cat-chip {
+  transition: transform .18s ease, box-shadow .18s ease;
+  will-change: transform;
+}
+
+.cat-chip:hover,
+.cat-chip:focus-visible {
+  transform: scale(1.06);                /* agranda todo el círculo */
+  box-shadow: 0 6px 18px rgba(0,0,0,.12), 0 1px 0 rgba(0,0,0,.06) inset;
+  z-index: 1;                             /* evita que quede por debajo de los vecinos */
+}
+
+.cat-chip img {
+  transition: transform .18s ease;        /* opcional: sutil énfasis a la imagen */
+}
+
+.cat-chip:hover img,
+.cat-chip:focus-visible img {
+  transform: scale(1.02);
+}
+/* === Slider de AGRUPACIONES (cada slide = 1 grupo) === */
+/* El track ya existe: .ps-root / .ps-track / .ps-card */
+/* Para que sea 1 grupo por "página" sin peeks: */
+.ps-root { --gap: 12px; padding: 0 16px; }
+.ps-track { gap: var(--gap); padding: 0; }
+.ps-card { flex: 0 0 calc(100%); scroll-snap-align: start; scroll-snap-stop: always; }
+
+/* Contenedor de grilla interna de una agrupación */
+.pg-card .pg-grid {
+  display: grid;
+  gap: 12px;
+}
+
+/* Variantes por cantidad de productos (auto si >4) */
+.pg-card.pg-n-1 .pg-grid { grid-template-columns: 1fr; }
+.pg-card.pg-n-2 .pg-grid { grid-template-columns: repeat(2, 1fr); }
+.pg-card.pg-n-3 .pg-grid { grid-template-columns: repeat(3, 1fr); }
+/* para 4, dos columnas (2x2) queda prolijo */
+.pg-card.pg-n-4 .pg-grid { grid-template-columns: repeat(2, 1fr); }
+.pg-card.pg-n-auto .pg-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+
+/* Cada producto dentro de la agrupación: imagen clickeable */
+.pg-item {
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+  /* aspecto consistente sin textos: tiles apaisados */
+  aspect-ratio: 16 / 9;
+}
+.pg-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .18s ease;
+}
+.pg-item:hover img { transform: scale(1.02); }
+
+/* Responsive (si querés compactar en mobile) */
+@media (max-width: 599px) {
+  .pg-card.pg-n-3 .pg-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* --- Fix 1: flechas siempre por encima del hover --- */
+.ps-root { position: relative; }
+.ps-nav {
+  z-index: 20;                 /* por encima de cualquier imagen transformada */
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  pointer-events: auto;
+}
+
+/* --- Fix 2: altura uniforme de las agrupaciones --- */
+/* Altura fija para TODOS los grupos (responsive con clamp) */
+.ps-root { --group-h: clamp(180px, 28vh, 320px); }
+
+/* La grilla interna ocupa exactamente esa altura */
+.pg-card .pg-grid {
+  height: var(--group-h);
+  align-items: stretch;
+  grid-auto-rows: 1fr;         /* si hay varias filas (p. ej. 2x2), reparten la altura */
+}
+
+/* Cada tile ocupa la altura completa de su celda */
+.pg-item {
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  display: block;
+  /* ya no dependemos del aspect-ratio aquí */
+}
+.pg-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .18s ease;
+}
+
+/* Sutil hover que ya no interfiere con las flechas */
+.pg-item:hover img { transform: scale(1.02); }
+
+/* Opcional: borde sutil para separar tiles en fondos claros */
+.pg-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04);
+  pointer-events: none;
+}
+/* === FULL-BLEED PARA AGRUPACIONES (sin espacios internos) === */
+
+/* 1) Sin separación entre tiles */
+.pg-card .pg-grid {
+  gap: 0;                 /* sin gutters */
+  height: var(--group-h); /* ya lo definiste arriba */
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+/* 2) Cada tile ocupa 100% de su celda y SIN bordes redondeados internos
+      (el radio queda sólo en la tarjeta .ps-card) */
+.pg-item {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* 3) La imagen rellena todo y no deja “pelos” blancos */
+.pg-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 4) Desactivar zoom en hover para que no invada tiles vecinos (sin gap) */
+.pg-item:hover img { transform: none; }
+
+/* 5) Asegurar que la tarjeta contenedora recorta los bordes externos */
+.ps-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* 6) Flechas siempre por encima (por si el hover vuelve en el futuro) */
+.ps-nav { z-index: 20; }
+/* --- Edge-to-edge global para el slider --- */
+.ps-root { padding-left: 0; padding-right: 0; }   /* elimina márgenes laterales */
+.ps-track { padding-left: 0; padding-right: 0; }  /* ya era 0, reforzamos */
+.ps-card  { border-radius: 0; }                    /* que las fotos peguen al borde */
