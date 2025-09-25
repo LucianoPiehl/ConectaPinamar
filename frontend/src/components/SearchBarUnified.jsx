@@ -1,21 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { useCancelable } from '../hooks/useCancelable';
 import { searchAll } from '../services/api';
 
 /**
  * SearchBarUnified
- *
- * Dos modos de uso:
- * - GLOBAL (por defecto): busca en el backend con searchAll() y muestra dropdown de resultados.
- * - LOCAL/SCOPED: si pasás `scopeItems` (array), NO consulta a la API. Filtra localmente y
- *   devuelve el resultado por `onScopedChange(filtered, term)`. El panel se puede ocultar con showPanel={false}.
+ * - Modo GLOBAL (default): consulta backend y muestra dropdown.
+ * - Modo LOCAL: si pasás `scopeItems`, NO consulta backend; filtra y llama a `onScopedChange(filtered, term)`.
  *
  * Props:
  * - placeholder?: string
- * - scopeItems?: any[]                 // activa modo local si existe
+ * - scopeItems?: any[]
  * - onScopedChange?: (items, term) => void
- * - showPanel?: boolean                // default true (para modo global). En local suele ir false.
+ * - showPanel?: boolean   // en local suele ir false
  * - className?: string
  */
 export default function SearchBarUnified({
@@ -27,67 +23,77 @@ export default function SearchBarUnified({
 }) {
   const [q, setQ] = useState('');
   const debounced = useDebouncedValue(q, 250);
-  const { controller } = useCancelable();
   const [combined, setCombined] = useState([]);
 
-  // --- Normalizador para filtro local
+  // Mantener onScopedChange estable sin ponerlo en deps
+  const onScopedChangeRef = useRef(onScopedChange);
+  useEffect(() => { onScopedChangeRef.current = onScopedChange; }, [onScopedChange]);
+
+  // Normalizador (estable)
   const norm = (s) =>
     String(s || '')
       .toLowerCase()
       .normalize('NFD')
       .replace(/\p{Diacritic}/gu, '');
 
+  // Filtro local memoizado sólo por scopeItems
   const filterLocal = useMemo(() => {
     if (!Array.isArray(scopeItems)) return () => [];
     return (term) => {
       const t = norm(term).trim();
       if (!t) return scopeItems;
       return scopeItems.filter((p) => {
-        const name = norm(p.name);
-        const desc = norm(p.description);
-        const seller = norm(p.seller?.name);
+        const name = norm(p?.name);
+        const desc = norm(p?.description);
+        const seller = norm(p?.seller?.name);
         return name.includes(t) || desc.includes(t) || seller.includes(t);
       });
     };
   }, [scopeItems]);
 
-  // --- Lógica: global vs local
+  // ---- Efecto MODO LOCAL (sin llamadas remotas)
   useEffect(() => {
-    // MODO LOCAL
-    if (Array.isArray(scopeItems)) {
-      const filtered = filterLocal(debounced);
-      if (typeof onScopedChange === 'function') onScopedChange(filtered, debounced);
-      // en modo local no usamos "combined" (dropdown global), lo limpiamos
-      setCombined([]);
+    if (!Array.isArray(scopeItems)) return; // no es local
+    const filtered = filterLocal(debounced);
+    // no mostramos dropdown global en modo local
+    if (combined.length) setCombined([]);
+    if (typeof onScopedChangeRef.current === 'function') {
+      onScopedChangeRef.current(filtered, debounced);
+    }
+  }, [debounced, scopeItems, filterLocal]); // <-- deps estables
+
+  // ---- Efecto MODO GLOBAL (con backend)
+  useEffect(() => {
+    if (Array.isArray(scopeItems)) return; // no es global
+
+    const term = debounced.trim();
+    if (!term) {
+      if (combined.length) setCombined([]);
       return;
     }
 
-    // MODO GLOBAL (igual a tu implementación original)
-    if (!debounced.trim()) {
-      setCombined([]);
-      return;
-    }
+    const ac = new AbortController(); // controlador local al efecto
     (async () => {
       try {
-        const data = await searchAll(debounced, controller());
+        const data = await searchAll(term, ac.signal);
         const cap = 8;
-        const p = data.products || [];
-        const c = data.categories || [];
-        const s = data.sellers || [];
         const arr = [];
-        for (const it of p) { if (arr.length < cap) arr.push({ type: 'product', ...it }); }
-        for (const it of c) { if (arr.length < cap) arr.push({ type: 'category', ...it }); }
-        for (const it of s) { if (arr.length < cap) arr.push({ type: 'seller', ...it }); }
+        for (const it of data.products || []) { if (arr.length < cap) arr.push({ type: 'product',  ...it }); }
+        for (const it of data.categories || []){ if (arr.length < cap) arr.push({ type: 'category', ...it }); }
+        for (const it of data.sellers || [])   { if (arr.length < cap) arr.push({ type: 'seller',   ...it }); }
         setCombined(arr);
       } catch (e) {
-        // ignore cancels
+        // Ignorar aborts/cancels; loguear otros errores opcionalmente
+        if (e?.name !== 'AbortError' && e?.message !== 'canceled') {
+          // console.warn('[SearchBarUnified] search error:', e);
+        }
       }
     })();
-  }, [debounced, scopeItems, filterLocal, onScopedChange, controller]);
 
-  const onSubmit = (e) => {
-    e.preventDefault(); // en local ya filtramos con debounce; en global el submit no es necesario
-  };
+    return () => ac.abort();
+  }, [debounced, scopeItems]); // NOTA: no dependemos de ningún controller inestable
+
+  const onSubmit = (e) => e.preventDefault();
 
   return (
     <form className={`cp-search-wrap ${className}`} onSubmit={onSubmit}>
@@ -99,7 +105,6 @@ export default function SearchBarUnified({
         type="search"
         aria-label="Buscar"
       />
-      {/* Botón lupa sólo visual (para calzar con el mock) */}
       <button className="cp-search-btn" type="submit" aria-label="Buscar">
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
           <path
@@ -112,7 +117,6 @@ export default function SearchBarUnified({
         </svg>
       </button>
 
-      {/* Panel de resultados sólo en modo GLOBAL (o si showPanel === true) */}
       {showPanel && !!combined.length && !Array.isArray(scopeItems) && (
         <div className="cp-search-panel">
           {combined.map((item) => (
@@ -144,7 +148,6 @@ export default function SearchBarUnified({
         </div>
       )}
 
-      {/* estilos mínimos del control (el “skin” final puede venir de la página) */}
       <style>{`
         .cp-search-wrap{
           position:relative; width:100%;

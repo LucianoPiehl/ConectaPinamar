@@ -40,20 +40,38 @@ public class PublicSectionsController {
                 .stream().map(Mapper::toSectionDTO).toList();
     }
 
+    /** ✅ NUEVO: admite slug por query param. Ej: /api/sections/groups?slug=10% */
+    @GetMapping("/groups")
+    public List<ProductGroupDTO> groupsBySlugQuery(@RequestParam("slug") String slug) {
+        Section sec = resolveSection(slug);
+        return groupsForSection(sec);
+    }
+
+    /** Soporte existente por path: /api/sections/{slug}/groups */
     @GetMapping("/{slug}/groups")
     public List<ProductGroupDTO> groupsBySlug(@PathVariable String slug) {
-        Optional<Section> sec = sectionRepo.findBySlug(slug);
-        if (sec.isEmpty()) {
-            // fallback: permitir ID numérico en lugar de slug
-            try { sec = sectionRepo.findById(Long.valueOf(slug)); } catch (Exception ignored) {}
-        }
-        if (sec.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
-        var groups = groupRepo.findBySectionAndEnabledTrueOrderByOrderIndexAsc(sec.get());
-        return groups.stream().map(this::toGroupDtoWithItems).toList();
+        Section sec = resolveSection(slug);
+        return groupsForSection(sec);
     }
 
     // ------- helpers -------
+    private Section resolveSection(String slugOrId) {
+        Optional<Section> sec = sectionRepo.findBySlug(slugOrId);
+        if (sec.isEmpty()) {
+            // fallback: permitir ID numérico en lugar de slug
+            try {
+                sec = sectionRepo.findById(Long.valueOf(slugOrId));
+            } catch (Exception ignored) {}
+        }
+        if (sec.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        return sec.get();
+    }
+
+    private List<ProductGroupDTO> groupsForSection(Section sec) {
+        var groups = groupRepo.findBySectionAndEnabledTrueOrderByOrderIndexAsc(sec);
+        return groups.stream().map(this::toGroupDtoWithItems).toList();
+    }
+
     private ProductGroupDTO toGroupDtoWithItems(ProductGroup g){
         var items = pgiRepo.findByGroupOrderByPositionAsc(g); // ordenados
         var dto = new ProductGroupDTO();

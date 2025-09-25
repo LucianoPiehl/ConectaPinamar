@@ -24,10 +24,10 @@ export default function App(){
       // 2) Secciones habilitadas desde BD
       const secs = await getSections(); // [{id,name,slug,...}], ya en orden si el repo lo devuelve ordenado
       // 3) Traer grupos para cada sección en paralelo
-      const pairs = await Promise.all(secs.map(async (s) => {
-        const groups = await getSectionGroups(s.slug);
-        return { section: s, groups: groups || [] };
-      }));
+        const pairs = await Promise.all(secs.map(async (s) => {
+          const groups = await getSectionGroups(s.id);   // <-- antes pasabas s.slug
+          return { section: s, groups: groups || [] };
+        }));
       // 4) Opcional: ocultar secciones sin grupos
       setSectionsWithGroups(pairs.filter(p => (p.groups?.length || 0) > 0));
     })().catch(e => console.error(e));

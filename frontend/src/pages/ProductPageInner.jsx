@@ -38,7 +38,7 @@ export default function ProductPageInner({ id }) {
       </div>
 
       {/* Título centrado */}
-      <h1 className="pp-title">producto</h1>
+      <h1 className="pp-title">{p.name}</h1>
 
       {/* Contenido principal */}
       <main className="pp-main">
