@@ -20,10 +20,12 @@ public class Category {
     @Column(columnDefinition="TEXT")
     private String description;
 
-    // ⬇️ NUEVO
     @Column(name = "image_url")
     private String imageUrl;
 
+    // ⬇️ NUEVO: banner (ej. 1200x300)
+    @Column(name = "image_banner_url")
+    private String imageBanner;
 
     @ManyToMany(mappedBy = "categories")
     private Set<Product> products = new HashSet<>();
@@ -37,13 +39,19 @@ public class Category {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getImageBanner() { return imageBanner; }        // ⬅️ NUEVO
+    public void setImageBanner(String imageBanner) { this.imageBanner = imageBanner; } // ⬅️ NUEVO
+
     public Set<Product> getProducts() { return products; }
     public void setProducts(Set<Product> products) { this.products = products; }
-    public String getImageUrl() { return imageUrl; }           // ⬅️ NUEVO
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; } // ⬅️ NUEVO
-
 }

@@ -1,7 +1,6 @@
 package com.exam.backend.Controller;
 
 import com.exam.backend.DTO.CategoryDTO;
-import com.exam.backend.Model.Category;
 import com.exam.backend.Repository.CategoryRepository;
 import com.exam.backend.Service.Mapper;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +21,9 @@ public class CategoryQueryController {
 
     @GetMapping
     public List<CategoryDTO> list() {
-        return categoryRepository.findAll().stream().map(Mapper::toCategoryDTO).collect(Collectors.toList());
+        return categoryRepository.findAll()
+                .stream()
+                .map(Mapper::toCategoryDTO)
+                .collect(Collectors.toList());
     }
 }

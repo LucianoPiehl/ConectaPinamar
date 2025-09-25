@@ -58,6 +58,9 @@
           align-content:flex-start;
         }
 
+        /* Mini grid de thumbs en listado de grupos */
+        .gthumbs{display:flex;gap:6px;flex-wrap:wrap}
+        .gthumbs img{width:36px;height:28px;object-fit:cover;border-radius:6px;border:1px solid #2a3142;background:#0b0d13}
     </style>
 </head>
 <body>
@@ -90,6 +93,8 @@
                 <input id="catName" placeholder="Nombre">
                 <input id="catDesc" placeholder="Descripción" style="min-width:280px">
                 <input id="catFile" type="file" accept="image/*">
+                <!-- NUEVO: banner -->
+                <input id="catFileBanner" type="file" accept="image/*" title="Banner (ej: 1200x300)">
                 <button class="btn primary" id="catCreate">Crear</button>
                 <input id="catQ" placeholder="Buscar…" style="margin-left:auto">
                 <button class="btn ghost" id="catReload">Buscar</button>
@@ -183,6 +188,18 @@
             </div>
         </div>
 
+        <!-- Listado de grupos existentes (visibles/enabled) -->
+        <div class="card">
+            <h2>Grupos · Listado</h2>
+            <div class="row">
+                <select id="gListSection" style="min-width:220px"></select>
+                <input id="gListQ" placeholder="Buscar por título…" style="min-width:220px">
+                <button class="btn ghost" id="gListReload">Buscar</button>
+                <span class="pill">Se muestran grupos habilitados por sección</span>
+            </div>
+            <div id="gTable"></div>
+        </div>
+
         <div class="card">
             <h2>Gestionar Items · Drag & Drop</h2>
             <div class="row">
@@ -216,7 +233,6 @@
                         <button class="btn" id="gUpdate">Actualizar</button>
                         <button class="btn" id="gSaveOrder">Sólo guardar orden</button>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -288,7 +304,14 @@
           <td>${c.id}</td>
           <td><input data-id="${c.id}" class="catN" value="${esc(c.name)}"></td>
           <td><input data-id="${c.id}" class="catD" value="${esc(c.description||'')}"></td>
-          <td>${c.imageUrl?`<img src="${esc(c.imageUrl)}" class="thumb">`:''}<br><input type="file" data-id="${c.id}" class="catF" accept="image/*"></td>
+          <td>
+            ${c.imageUrl?`<img src="${esc(c.imageUrl)}" class="thumb">`:''}
+            <br><input type="file" data-id="${c.id}" class="catF" accept="image/*">
+          </td>
+          <td>
+            ${c.imageBanner?`<img src="${esc(c.imageBanner)}" class="thumb">`:''}
+            <br><input type="file" data-id="${c.id}" class="catB" accept="image/*" title="Banner">
+          </td>
           <td>
             <button class="btn catUp" data-id="${c.id}">Guardar</button>
             <button class="btn bad catDel" data-id="${c.id}">Borrar</button>
@@ -299,9 +322,18 @@
           const id=+e.target.dataset.id;
           const name=container.querySelector(`.catN[data-id="${id}"]`).value;
           const desc=container.querySelector(`.catD[data-id="${id}"]`).value;
+
           const file=container.querySelector(`.catF[data-id="${id}"]`).files[0];
-          let url=null; if(file) url=(await S.upload(file)).url;
-          await S.api(`/api/admin/categories/${id}`, { method:'PUT', body:JSON.stringify({ name, description:desc, imageUrl:url }) });
+          const fileBanner=container.querySelector(`.catB[data-id="${id}"]`).files[0];
+
+          let url=null, banner=null;
+          if(file) url=(await S.upload(file)).url;
+          if(fileBanner) banner=(await S.upload(fileBanner)).url;
+
+          await S.api(`/api/admin/categories/${id}`, {
+            method:'PUT',
+            body:JSON.stringify({ name, description:desc, imageUrl:url, imageBanner:banner })
+          });
           cats.reload();
         });
         container.querySelectorAll('.catDel').forEach(btn=>btn.onclick=async e=>{
@@ -315,7 +347,7 @@
         const data = await cats.list(q);
         const html = `
           <table>
-            <thead><tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Imagen</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Imagen</th><th>Banner</th><th>Acciones</th></tr></thead>
             <tbody>${data.content.map(cats.row).join('')}</tbody>
           </table>`;
         el('catTable').innerHTML = html;
@@ -323,10 +355,14 @@
       }
     };
     el('catCreate').onclick = async ()=>{
-      let url=null; const f=el('catFile').files[0]; if(f) url=(await S.upload(f)).url;
-      const body={ name:el('catName').value, description:el('catDesc').value, imageUrl:url };
+      let url=null, banner=null;
+      const f=el('catFile').files[0];
+      const fb=el('catFileBanner').files[0];
+      if(f) url=(await S.upload(f)).url;
+      if(fb) banner=(await S.upload(fb)).url;
+      const body={ name:el('catName').value, description:el('catDesc').value, imageUrl:url, imageBanner:banner };
       await S.api('/api/admin/categories', { method:'POST', body:JSON.stringify(body) });
-      el('catName').value=''; el('catDesc').value=''; el('catFile').value='';
+      el('catName').value=''; el('catDesc').value=''; el('catFile').value=''; el('catFileBanner').value='';
       cats.reload();
     };
     el('catReload').onclick = ()=>cats.reload();
@@ -406,7 +442,7 @@
         el('pSeller').innerHTML = products.state.sellers.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
         el('pCats').innerHTML = products.state.cats.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
         // groups helpers
-        el('gSection').innerHTML = ''; // lo llena sections.init()
+        el('gSection').innerHTML = ''; // lo llena sections.reload()
       },
       row(p){ return `
         <tr>
@@ -473,7 +509,7 @@
 
     /* ===== Secciones ===== */
     const sections = {
-      async list(q=''){ return S.api(`/api/admin/sections?q=${encodeURIComponent(q)}&page=0&size=50`); },
+      async list(q=''){ return S.api(`/api/admin/sections?q=${encodeURIComponent(q)}&page=0&size=200`); },
       row(s){ return `
         <tr>
           <td>${s.id}</td>
@@ -499,8 +535,10 @@
             <tbody>${data.content.map(sections.row).join('')}</tbody>
           </table>`;
         sections.bind(el('secTable'));
-        // llenar select de grupos
+        // llenar select de grupos (crear)
         el('gSection').innerHTML = data.content.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+        // llenar filtro de listado de grupos
+        el('gListSection').innerHTML = `<option value="">Todas las secciones</option>` + data.content.map(s=>`<option value="${esc(s.slug)}">${esc(s.name)} (${esc(s.slug)})</option>`).join('');
       }
     };
     el('secCreate').onclick = async ()=>{
@@ -508,24 +546,105 @@
       await S.api('/api/admin/sections', { method:'POST', body:JSON.stringify(body) });
       ['secName','secSlug','secOrder'].forEach(id=>el(id).value=''); el('secEnabled').checked=true;
       sections.reload();
+      groups.reloadList(); // refresca listado de grupos por si aplica
     };
-    el('secReload').onclick = ()=>sections.reload();
+    el('secReload').onclick = ()=>{ sections.reload(); groups.reloadList(); };
 
     /* ===== Grupos ===== */
 const groups = {
-  state:{ products:[], groupIds:new Set() },
+  state:{ products:[], groupIds:new Set(), sections:[] },
 
   async init(){
-    // cargar secciones para combo
-    const secs = await S.api('/api/admin/sections?page=0&size=200');
-    el('gSection').innerHTML = secs.content.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    // cargar secciones (para combos y listado)
+    const secs = await sections.list('');
+    this.state.sections = secs.content || [];
+    el('gSection').innerHTML = this.state.sections.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+    el('gListSection').innerHTML = `<option value="">Todas las secciones</option>` + this.state.sections.map(s=>`<option value="${esc(s.slug)}">${esc(s.name)} (${esc(s.slug)})</option>`).join('');
+
     // cargar productos disponibles (catálogo completo)
     const prods = await S.api('/api/admin/products?page=0&size=500');
     this.state.products = prods.content;
+
     this.renderAvailable();
     this.bind();
+    await this.reloadList(); // carga visualización de grupos existentes
   },
 
+  // ---------- LISTADO (visualización de grupos existentes) ----------
+  async reloadList(){
+    const cont = el('gTable');
+    const slugFilter = el('gListSection').value;
+    const q = el('gListQ').value.trim().toLowerCase();
+
+    let sectionsToQuery = this.state.sections.filter(s => s.enabled);
+    if (slugFilter) sectionsToQuery = sectionsToQuery.filter(s => s.slug === slugFilter);
+
+    // Trae grupos por sección (público: sólo enabled)
+    const rows = [];
+    for (const s of sectionsToQuery){
+      try{
+        const groups = await S.api(`/api/sections/${encodeURIComponent(s.slug)}/groups`);
+        groups.forEach(g=>{
+          if (q && !String(g.title||'').toLowerCase().includes(q)) return;
+          rows.push(this.rowForList(g, s));
+        });
+      }catch(e){
+        // si una sección no tiene grupos o slug no existe, la saltamos
+      }
+    }
+
+    cont.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Título</th><th>Sección</th><th>Variante</th><th>Orden</th><th>#Items</th><th>Preview</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.join('') || `<tr><td colspan="8" style="text-align:center;color:#9aa4b8">Sin resultados</td></tr>`}
+        </tbody>
+      </table>`;
+    this.bindList(cont);
+  },
+
+  rowForList(g, section){
+    const thumbs = (g.products||[]).slice(0,6).map(p=>`<img src="${esc(p.imageUrl||'/placeholder.png')}" alt="">`).join('');
+    return `
+      <tr>
+        <td>${g.id}</td>
+        <td>${esc(g.title||'')}</td>
+        <td><span class="pill">${esc(section.name)}</span><br><small style="color:#9aa4b8">${esc(section.slug)}</small></td>
+        <td>${esc(g.variant||'')}</td>
+        <td>${g.orderIndex??''}</td>
+        <td>${(g.products||[]).length}</td>
+        <td><div class="gthumbs">${thumbs}</div></td>
+        <td>
+          <button class="btn gLoadOne" data-id="${g.id}">Cargar</button>
+          <button class="btn bad gDelOne" data-id="${g.id}">Borrar</button>
+        </td>
+      </tr>`;
+  },
+
+  bindList(container){
+    container.querySelectorAll('.gLoadOne').forEach(btn=>btn.onclick = async e=>{
+      const id = Number(e.target.dataset.id);
+      el('gId').value = id;
+      await gLoadHandler(); // reutilizamos el loader de abajo
+    });
+    container.querySelectorAll('.gDelOne').forEach(btn=>btn.onclick = async e=>{
+      const id = Number(e.target.dataset.id);
+      if(!confirm('¿Borrar grupo '+id+'?')) return;
+      await S.api(`/api/admin/product-groups/${id}`, { method:'DELETE' });
+      await this.reloadList();
+      // si justo tenías cargado ese grupo, limpiá la UI
+      if (Number(el('gId').value) === id){
+        el('gItems').innerHTML=''; this.state.groupIds = new Set(); this.renderAvailable();
+        el('gInfo').textContent='sin grupo cargado'; el('gId').value='';
+      }
+    });
+  },
+
+  // ---------- DnD ----------
   // Render disponibles = todos menos los que están en el grupo actual
   renderAvailable(){
     const q = el('gAvailQ').value.trim().toLowerCase();
@@ -547,7 +666,12 @@ const groups = {
   },
 
   // chip draggable
-  tag(id){ return `<div class="item" draggable="true" data-id="${id}">#${id}</div>`; }
+  tag(id){ return `<div class="item" draggable="true" data-id="${id}">#${id}</div>`; },
+
+  bind(){
+    el('gAvailSearch').onclick = ()=>this.renderAvailable();
+    el('gListReload').onclick = ()=>this.reloadList();
+  }
 };
 
 el('gCreate').onclick = async ()=>{
@@ -555,16 +679,18 @@ el('gCreate').onclick = async ()=>{
   const g = await S.api('/api/admin/product-groups', { method:'POST', body:JSON.stringify(body) });
   el('gId').value = g.id; el('gInfo').textContent = `grupo #${g.id}`;
   alert('Grupo creado con id '+g.id);
+  groups.reloadList();
 };
 
-el('gLoad').onclick = async ()=>{
+async function gLoadHandler(){
   const id = Number(el('gId').value); if(!id) return alert('Ingresá un ID');
   const g = await S.api(`/api/admin/product-groups/${id}`);
   el('gInfo').textContent = `grupo #${g.id} (${(g.products||[]).length} items)`;
   const listIds = (g.products||[]).map(p=>p.id);
   groups.renderGroup(listIds);
   groups.renderAvailable(); // recalcula disponibles
-};
+}
+el('gLoad').onclick = gLoadHandler;
 
 el('gDelete').onclick = async ()=>{
   const id = Number(el('gId').value); if(!id) return;
@@ -574,8 +700,6 @@ el('gDelete').onclick = async ()=>{
   await groups.init();
 };
 
-el('gAvailSearch').onclick = ()=>groups.renderAvailable();
-
 el('gSave').onclick = async ()=>{
   const id = Number(el('gId').value); if(!id) return;
   const productIds = [...el('gItems').children].map(x=>Number(x.dataset.id));
@@ -583,35 +707,31 @@ el('gSave').onclick = async ()=>{
   alert('Items reemplazados');
   groups.renderGroup(productIds);
   groups.renderAvailable();
+  groups.reloadList();
 };
-// “Actualizar” → persiste los items actuales del grupo (igual que Guardar, sin alert intrusivo)
+// “Actualizar” → igual que Guardar pero con feedback breve
 el('gUpdate').onclick = async ()=>{
   const id = Number(el('gId').value);
   if (!id) return alert('Ingresá un ID de grupo primero');
-
   const productIds = [...el('gItems').children].map(x => Number(x.dataset.id));
-
   await S.api(`/api/admin/product-groups/${id}/items`, {
     method: 'PUT',
     body: JSON.stringify({ productIds })
   });
-
-  // refresco visual suave
   groups.renderGroup(productIds);
   groups.renderAvailable();
-
-  // actualiza el pill con el contador
   const pill = document.getElementById('gInfo');
   if (pill) pill.textContent = `grupo #${id} (${productIds.length} items)`;
+  groups.reloadList();
   alert('Actualizado');
 };
-
 
 el('gSaveOrder').onclick = async ()=>{
   const id = Number(el('gId').value); if(!id) return;
   const productIds = [...el('gItems').children].map(x=>Number(x.dataset.id));
   await S.api(`/api/admin/product-groups/${id}/items/order`, { method:'PUT', body:JSON.stringify({ productIds }) });
   alert('Orden guardado');
+  groups.reloadList();
 };
 
 function dndInitLists(){
@@ -623,7 +743,6 @@ function dndInitLists(){
     { zone: groupList.closest('.dropzone'), list: groupList }
   ];
 
-  // Todos los ítems (nuevos o existentes) deben ser “draggable”
   document.querySelectorAll('.item').forEach(it=>{
     it.addEventListener('dragstart', e=>{
       e.dataTransfer.setData('text/plain', it.dataset.id);
@@ -632,7 +751,6 @@ function dndInitLists(){
     it.addEventListener('dragend', ()=> it.classList.remove('dragging'));
   });
 
-  // La zona punteada acepta el drop y decide dónde insertar en su lista interna
   pairs.forEach(({zone, list})=>{
     zone.addEventListener('dragover', e=>{
       e.preventDefault();
@@ -645,11 +763,9 @@ function dndInitLists(){
 
     zone.addEventListener('drop', e=>{
       e.preventDefault();
-      // Actualizá el set con lo que quedó en la columna de grupo
       const idsGroup = new Set([...groupList.children].map(x=>Number(x.dataset.id)));
       groups.state.groupIds = idsGroup;
-      groups.renderAvailable(); // recalcula “Disponibles” (saca los que ya están)
-      // si querés, refrescá el contador en el pill:
+      groups.renderAvailable();
       const count = groupList.children.length;
       const pill = document.getElementById('gInfo');
       if (pill && /grupo #\d+/.test(pill.textContent)) {
@@ -668,17 +784,18 @@ function dndInitLists(){
   }
 }
 
-
-
     /* ===== Buscar por enter ===== */
-    ['catQ','sQ','pQ','secQ'].forEach(id=>el(id).addEventListener('keydown',e=>{
-      if(e.key==='Enter'){ e.preventDefault(); const t=id.slice(0,3);
-        if(t==='cat') cats.reload();
-        if(t==='sQ') sellers.reload();
-        if(t==='pQ') products.reload();
-        if(t==='sec') sections.reload();
+    ['catQ','sQ','pQ','secQ','gListQ'].forEach(id=>el(id).addEventListener('keydown',e=>{
+      if(e.key==='Enter'){
+        e.preventDefault();
+        if(id==='catQ') cats.reload();
+        if(id==='sQ') sellers.reload();
+        if(id==='pQ') products.reload();
+        if(id==='secQ'){ sections.reload(); groups.reloadList(); }
+        if(id==='gListQ') groups.reloadList();
       }
     }));
+    el('gListSection').addEventListener('change', ()=>groups.reloadList());
 </script>
 </body>
 </html>

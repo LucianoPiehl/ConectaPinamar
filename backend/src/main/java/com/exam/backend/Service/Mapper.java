@@ -14,7 +14,9 @@ public class Mapper {
         dto.id = c.getId();
         dto.name = c.getName();
         dto.description = c.getDescription();
-        dto.imageUrl = c.getImageUrl();   // ⬅️ NUEVO
+        dto.imageUrl = c.getImageUrl();
+        dto.imageBanner = c.getImageBanner(); // ⬅️ NUEVO
+
         return dto;
     }
 
