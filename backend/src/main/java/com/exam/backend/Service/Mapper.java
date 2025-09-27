@@ -15,8 +15,7 @@ public class Mapper {
         dto.name = c.getName();
         dto.description = c.getDescription();
         dto.imageUrl = c.getImageUrl();
-        dto.imageBanner = c.getImageBanner(); // ⬅️ NUEVO
-
+        dto.imageBanner = c.getImageBanner();
         return dto;
     }
 
@@ -40,6 +39,11 @@ public class Mapper {
         dto.contactEmail = s.getContactEmail();
         dto.imageUrl = s.getImageUrl();
         dto.visitCount = s.getVisitCount();
+        dto.facebookUrl = s.getFacebookUrl();
+        dto.instagramUrl = s.getInstagramUrl();
+        dto.whatsappUrl = s.getWhatsappUrl();
+        dto.latitude = s.getLatitude();
+        dto.longitude = s.getLongitude();
         return dto;
     }
 
@@ -56,8 +60,8 @@ public class Mapper {
         }
         return dto;
     }
+
     public static ProductLiteDTO toProductLite(Product p){
-        // ¡clave!: imageUrl del DTO sale de Product.image
         return new ProductLiteDTO(p.getId(), p.getImage());
     }
 
@@ -82,6 +86,7 @@ public class Mapper {
         d.slug = s.getSlug();
         d.orderIndex = s.getOrderIndex();
         d.enabled = s.getEnabled();
+        d.audience = s.getAudience(); // NUEVO
         return d;
     }
 }

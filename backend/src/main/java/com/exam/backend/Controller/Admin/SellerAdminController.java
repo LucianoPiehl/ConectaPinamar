@@ -39,16 +39,27 @@ public class SellerAdminController extends AdminBaseController {
         return result.map(Mapper::toSellerDTO);
     }
 
+    private String trimToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody Seller body){
         try {
             Seller s = new Seller();
             s.setName(body.getName());
-            s.setDescription(body.getDescription());
-            s.setLocation(body.getLocation());
-            s.setContactPhone(body.getContactPhone());
-            s.setContactEmail(body.getContactEmail());
-            s.setImageUrl(body.getImageUrl());
+            s.setDescription(trimToNull(body.getDescription()));
+            s.setLocation(trimToNull(body.getLocation()));
+            s.setContactPhone(trimToNull(body.getContactPhone()));
+            s.setContactEmail(trimToNull(body.getContactEmail()));
+            s.setImageUrl(trimToNull(body.getImageUrl()));
+            s.setFacebookUrl(trimToNull(body.getFacebookUrl()));
+            s.setInstagramUrl(trimToNull(body.getInstagramUrl()));
+            s.setWhatsappUrl(trimToNull(body.getWhatsappUrl()));
+            s.setLatitude(body.getLatitude());
+            s.setLongitude(body.getLongitude());
             s.setVisitCount(0L);
             return ResponseEntity.ok(Mapper.toSellerDTO(repo.save(s)));
         } catch (DataIntegrityViolationException e){
@@ -62,11 +73,18 @@ public class SellerAdminController extends AdminBaseController {
         if (o.isEmpty()) return ResponseEntity.notFound().build();
         Seller s = o.get();
         s.setName(body.getName());
-        s.setDescription(body.getDescription());
-        s.setLocation(body.getLocation());
-        s.setContactPhone(body.getContactPhone());
-        s.setContactEmail(body.getContactEmail());
-        s.setImageUrl(body.getImageUrl());
+        s.setDescription(trimToNull(body.getDescription()));
+        s.setLocation(trimToNull(body.getLocation()));
+        s.setContactPhone(trimToNull(body.getContactPhone()));
+        s.setContactEmail(trimToNull(body.getContactEmail()));
+        if (body.getImageUrl() != null) {
+            s.setImageUrl(trimToNull(body.getImageUrl()));
+        }
+        s.setFacebookUrl(trimToNull(body.getFacebookUrl()));
+        s.setInstagramUrl(trimToNull(body.getInstagramUrl()));
+        s.setWhatsappUrl(trimToNull(body.getWhatsappUrl()));
+        s.setLatitude(body.getLatitude());
+        s.setLongitude(body.getLongitude());
         try {
             return ResponseEntity.ok(Mapper.toSellerDTO(repo.save(s)));
         } catch (DataIntegrityViolationException e){

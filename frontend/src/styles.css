@@ -1,6 +1,7 @@
-/* ========== Base ========== */
+/* =========================
+   BASE
+   ========================= */
 * { box-sizing: border-box; }
-
 body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
@@ -8,7 +9,26 @@ body {
   background: #fff;
 }
 
-/* Títulos de sección (se reutiliza) */
+.page{
+  animation: pageFade .45s cubic-bezier(.22,.61,.36,1) both;
+}
+
+@keyframes pageFade{
+  from{ opacity:0; transform:translateY(18px); }
+  to{ opacity:1; transform:none; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .page,
+  .cp-hero,
+  .cp-search-panel,
+  .cp-search-item,
+  header.cp-header{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+  }
+}
 .title {
   margin: 0;
   padding: 24px 16px 12px 16px;
@@ -16,312 +36,566 @@ body {
   border-top: 1px solid #eee;
 }
 
-/* ========== Header ========== */
-.header {
-  background: #f5f5f5;
-  padding: 16px;
-  display: grid;
-  grid-template-columns: auto 1fr; /* logo a la izquierda, buscador a la derecha */
-  gap: 16px;
-  align-items: center;
-}
+/* Desactivar header viejo (evita doble logo) */
+.header { display: none !important; }
 
-/* Ahora el logo es IMAGEN, no texto */
-.logo {
-  display: block;
-  line-height: 0; /* quita espacio extra alrededor de la img */
-}
-.logo img {
-  height: 64px;     /* ajustá si querés más grande */
-  width: auto;
-  display: block;
-}
-@media (min-width: 900px) {
-  .logo img { height: 92px; }
-}
-
-/* ========== Search ========== */
+/* =========================
+   SEARCH (dropdown – usado por SearchBarUnified)
+   ========================= */
 .cp-search-wrap { position: relative; max-width: 680px; }
-.cp-search-input {
-  width: 100%;
-  height: 44px;
-  border-radius: 999px;
-  padding: 0 16px;
-  background: #F7D34A;
-  border: 0;
-}
+.cp-search-input { width: 100%; height: 44px; border-radius: 999px; padding: 0 16px; background: #F7D34A; border: 0; }
 .cp-search-panel {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 52px;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  overflow: hidden;
-  z-index: 20;
+  position: absolute; left: 0; right: 0; top: 52px;
+  background: #fff; border: 1px solid #eee; border-radius: 12px; overflow: hidden; z-index: 20;
 }
-.cp-search-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  text-decoration: none;
-  color: #111;
-}
+.cp-search-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; text-decoration: none; color: #111; }
 .cp-search-item:hover { background: #fafafa; }
-.cp-search-item .thumb {
-  width: 40px; height: 40px;
-  object-fit: cover; border-radius: 8px;
-}
-.cp-search-item .b { font-weight: 800; }   /* categoría en negrita */
-.cp-search-item .i { font-style: italic; } /* negocio en cursiva */
+.cp-search-item .thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; }
+.cp-search-item .b { font-weight: 800; }
+.cp-search-item .i { font-style: italic; }
 
-/* ========== Slider de CATEGORÍAS (círculos amarillos con imagen centrada) ========== */
+/* =========================
+   SLIDER: CATEGORÍAS (chips redondos)
+   ========================= */
 .cats {
-  display: flex;
-  gap: 12px;
-  padding: 8px 16px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding: 0 16px;
+  display: flex; gap: 12px; padding: 8px 16px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 16px;
 }
-.cats::-webkit-scrollbar { display: none; }  /* oculta scrollbar en WebKit */
+.cats::-webkit-scrollbar { display: none; }
 
 .cat-chip {
   --size: clamp(72px, 14vw, 96px);
-  flex: 0 0 var(--size);
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  background: #F7D34A;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  text-decoration: none;
-  border: none;
-  outline: 0;
-  scroll-snap-align: start;
-  box-shadow: 0 1px 0 rgba(0,0,0,.06) inset;
-  cursor: pointer;
+  flex: 0 0 var(--size); width: var(--size); height: var(--size);
+  border-radius: 50%; background: #F7D34A; display: inline-flex; align-items: center; justify-content: center;
+  position: relative; text-decoration: none; border: none; outline: 0; scroll-snap-align: start;
+  box-shadow: 0 1px 0 rgba(0,0,0,.06) inset; cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease; will-change: transform;
 }
-.cat-chip:focus-visible {
-  outline: 2px solid #111;
-  outline-offset: 2px;
-}
-.cat-chip img {
-  width: 60%;
-  height: 60%;
-  object-fit: contain;   /* mantiene proporción del ícono */
-  display: block;
-  pointer-events: none;  /* hace clickeable TODO el círculo, no solo la imagen */
-}
+.cat-chip:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+.cat-chip img { width: 60%; height: 60%; object-fit: contain; display: block; pointer-events: none; transition: transform .18s ease; }
+.cat-chip:hover, .cat-chip:focus-visible { transform: scale(1.06); box-shadow: 0 6px 18px rgba(0,0,0,.12), 0 1px 0 rgba(0,0,0,.06) inset; z-index: 1; }
+.cat-chip:hover img, .cat-chip:focus-visible img { transform: scale(1.02); }
 
-/* ========== Slider de PRODUCTOS (cards solo imagen clickeable) ========== */
-.ps-root {
-  position: relative;
-  /* layout variables */
-  --gap: 12px;
-  --perPage: 1;                 /* mobile por defecto */
-  padding: 0 16px;              /* padding fuera del track para no generar "peek" */
-}
-
-@media (min-width: 600px)  { .ps-root { --perPage: 2; } }
-@media (min-width: 900px)  { .ps-root { --perPage: 3; } }
-/* si quisieras 4 en pantallas muy grandes, descomentá:
-@media (min-width: 1280px) { .ps-root { --perPage: 4; } }
-*/
+/* =========================
+   SLIDER: PRODUCTOS / AGRUPACIONES
+   ========================= */
+.ps-root { position: relative; --gap: 12px; --perPage: 1; padding: 0 16px; }
+@media (min-width: 600px) { .ps-root { --perPage: 2; } }
+@media (min-width: 900px) { .ps-root { --perPage: 3; } }
 
 .ps-track {
-  display: flex;
-  overflow: auto;
-  gap: var(--gap);
-  scroll-snap-type: x mandatory;
-  /* sin padding aquí para que la "página" encaje exacto */
-  padding: 0;
-  scrollbar-width: none;
+  display: flex; overflow: auto; gap: var(--gap);
+  scroll-snap-type: x mandatory; padding: 0; scrollbar-width: none;
 }
 .ps-track::-webkit-scrollbar { display: none; }
 
 .ps-card {
-  /* EXACT: ancho calculado para que entren --perPage cards justas en el viewport */
   flex: 0 0 calc((100% - (var(--gap) * (var(--perPage) - 1))) / var(--perPage));
-  scroll-snap-align: start;
-  scroll-snap-stop: always;      /* evita peeks al terminar el scroll */
-  border-radius: 12px;
-  overflow: hidden;
+  scroll-snap-align: start; scroll-snap-stop: always; border-radius: 12px; overflow: hidden;
 }
-
-.ps-card img {
-  width: 100%;
-  height: 28vh;
-  object-fit: cover;
-  display: block;
-}
+.ps-card img { width: 100%; height: 28vh; object-fit: cover; display: block; }
 
 .ps-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  border: 0;
-  background: #000; color: #fff;
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: #000; color: #fff;
+  z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,.2); pointer-events: auto;
 }
 .ps-nav.prev { left: 8px; }
 .ps-nav.next { right: 8px; }
 
-/* --- Hover/focus: agrandar círculo e imagen --- */
-.cat-chip {
-  transition: transform .18s ease, box-shadow .18s ease;
-  will-change: transform;
-}
-
-.cat-chip:hover,
-.cat-chip:focus-visible {
-  transform: scale(1.06);                /* agranda todo el círculo */
-  box-shadow: 0 6px 18px rgba(0,0,0,.12), 0 1px 0 rgba(0,0,0,.06) inset;
-  z-index: 1;                             /* evita que quede por debajo de los vecinos */
-}
-
-.cat-chip img {
-  transition: transform .18s ease;        /* opcional: sutil énfasis a la imagen */
-}
-
-.cat-chip:hover img,
-.cat-chip:focus-visible img {
-  transform: scale(1.02);
-}
-/* === Slider de AGRUPACIONES (cada slide = 1 grupo) === */
-/* El track ya existe: .ps-root / .ps-track / .ps-card */
-/* Para que sea 1 grupo por "página" sin peeks: */
-.ps-root { --gap: 12px; padding: 0 16px; }
-.ps-track { gap: var(--gap); padding: 0; }
-.ps-card { flex: 0 0 calc(100%); scroll-snap-align: start; scroll-snap-stop: always; }
-
-/* Contenedor de grilla interna de una agrupación */
-.pg-card .pg-grid {
-  display: grid;
-  gap: 12px;
-}
-
-/* Variantes por cantidad de productos (auto si >4) */
+/* Agrupaciones: 1 grupo por “página” */
+.ps-root { --group-h: clamp(180px, 28vh, 320px); }
+.ps-card { flex: 0 0 100%; }
+.pg-card .pg-grid { display: grid; gap: 12px; height: var(--group-h); align-items: stretch; grid-auto-rows: 1fr; }
 .pg-card.pg-n-1 .pg-grid { grid-template-columns: 1fr; }
 .pg-card.pg-n-2 .pg-grid { grid-template-columns: repeat(2, 1fr); }
 .pg-card.pg-n-3 .pg-grid { grid-template-columns: repeat(3, 1fr); }
-/* para 4, dos columnas (2x2) queda prolijo */
 .pg-card.pg-n-4 .pg-grid { grid-template-columns: repeat(2, 1fr); }
 .pg-card.pg-n-auto .pg-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
-/* Cada producto dentro de la agrupación: imagen clickeable */
-.pg-item {
-  display: block;
-  border-radius: 12px;
-  overflow: hidden;
-  /* aspecto consistente sin textos: tiles apaisados */
-  aspect-ratio: 16 / 9;
-}
-.pg-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform .18s ease;
-}
+.pg-item { display: block; border-radius: 12px; overflow: hidden; aspect-ratio: 16 / 9; height: 100%; }
+.pg-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .18s ease; }
 .pg-item:hover img { transform: scale(1.02); }
 
-/* Responsive (si querés compactar en mobile) */
 @media (max-width: 599px) {
   .pg-card.pg-n-3 .pg-grid { grid-template-columns: repeat(2, 1fr); }
 }
-/* --- Fix 1: flechas siempre por encima del hover --- */
-.ps-root { position: relative; }
-.ps-nav {
-  z-index: 20;                 /* por encima de cualquier imagen transformada */
-  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+
+/* Full-bleed (sin gaps internos) */
+.pg-card .pg-grid { gap: 0; }
+.pg-item { border-radius: 0; }
+.ps-card { border-radius: 12px; overflow: hidden; }
+
+/* Edge-to-edge del carrusel */
+.ps-root { padding-left: 0; padding-right: 0; }
+.ps-track { padding-left: 0; padding-right: 0; }
+
+/* =========================
+   HERO (logo grande + buscador)
+   ========================= */
+.cp-hero {
+  background:#F7D34A;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.cp-hero-inner {
+  max-width:1100px; margin:0 auto; padding:16px 12px 24px;
+  display:grid; gap:12px; justify-items:center;
+}
+.cp-brand-big img { height:86px; display:block; }
+@media (min-width:900px){ .cp-brand-big img { height:118px; } }
+.cp-hero-search { width:100%; max-width:860px; }
+.cp-hero.is-hidden { opacity:0; transform:translateY(-8px); pointer-events:none; }
+
+/* =========================
+   HEADER CHICO (aparece al scrollear)
+   ========================= */
+
+header.cp-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: #F7D34A;
+  opacity: 0;
+  transform: translateY(-16px);
+  transition: opacity .25s ease, transform .25s ease;
+  box-shadow: none;
+  pointer-events: none;
+  visibility: hidden;
+}
+header.cp-header.show {
+  opacity: 1;
+  transform: translateY(0);
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
   pointer-events: auto;
+  visibility: visible;
 }
 
-/* --- Fix 2: altura uniforme de las agrupaciones --- */
-/* Altura fija para TODOS los grupos (responsive con clamp) */
-.ps-root { --group-h: clamp(180px, 28vh, 320px); }
+header.cp-header .cp-header-inner {
+  max-width:1100px; margin:0 auto; padding:8px 12px;
+  display:grid; grid-template-columns: auto 1fr auto; /* LOGO | SEARCH | ACCIONES */
+  align-items:center; gap:12px;
+}
+header.cp-header .cp-brand { margin:0; justify-self:start; line-height:0; }
+header.cp-header .cp-brand img { height:44px; display:block; }
+header.cp-header .cp-search-outer { min-width: 0; }
+header.cp-header .cp-right { justify-self:end; display:flex; align-items:center; gap:10px; }
 
-/* La grilla interna ocupa exactamente esa altura */
-.pg-card .pg-grid {
-  height: var(--group-h);
-  align-items: stretch;
-  grid-auto-rows: 1fr;         /* si hay varias filas (p. ej. 2x2), reparten la altura */
+/* Píldora de audiencia (desktop) + menú */
+.cp-aud { position: relative; }
+.cp-aud-pill {
+  background:#000; color:#fff; font-weight:800;
+  padding:10px 14px; border-radius:999px; border:0; cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+
+}
+.cp-aud-menu {
+  position:absolute; right:0; top:calc(100% + 6px);
+  background:#fff; border:1px solid #ddd; border-radius:12px; overflow:hidden;
+  box-shadow:0 12px 30px rgba(0,0,0,.18); min-width:160px;
+}
+.cp-aud-menu button {
+  display:block; width:100%; padding:10px 12px; text-align:left;
+  background:#fff; border:0; cursor:pointer;
+}
+.cp-aud-menu button:hover { background:#f7f7f7; }
+
+/* Burger (solo mobile) */
+.cp-burger { width:34px; height:28px; background:transparent; border:0; display:none; gap:4px; }
+.cp-burger span { display:block; height:3px; background:#000; border-radius:2px; }
+
+@media (min-width:901px){
+  header.cp-header .cp-aud { display:block; }
+  header.cp-header .cp-burger { display:none; }
+}
+@media (max-width:900px){
+  header.cp-header .cp-aud { display:none; }
+  header.cp-header .cp-burger { display:grid; }
 }
 
-/* Cada tile ocupa la altura completa de su celda */
-.pg-item {
-  height: 100%;
-  border-radius: 12px;
+/* =========================
+   DRAWER MOBILE
+   ========================= */
+.cp-drawer { position: fixed; inset: 0; background: rgba(0,0,0,.4); display:none; z-index:50; }
+.cp-drawer.open { display:block; }
+.cp-drawer .panel {
+  position:absolute; right:0; top:0; bottom:0; width: min(86vw, 360px);
+  background:#fff; box-shadow: -8px 0 24px rgba(0,0,0,.18); padding: 18px;
+}
+.cp-drawer h4 { margin: 4px 0 12px; font: 800 14px/1 system-ui,-apple-system; letter-spacing:.04em; }
+.cp-drawer .aud-switch { display:grid; gap:8px; }
+.cp-drawer .aud-switch button {
+  border:1px solid #222; background:#fff; border-radius:10px; padding:10px 12px; text-align:left; font-weight:700; cursor:pointer;
+}
+.cp-drawer .aud-switch button.active { background:#F7D34A; }
+
+/* =========================
+   AUDIENCE GATE (pantalla completa, SIN animación)
+   ========================= */
+.ag-root{
+  position: fixed;
+  inset: 0;
+  z-index: 10000;                 /* por encima de la web */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   overflow: hidden;
-  display: block;
-  /* ya no dependemos del aspect-ratio aquí */
 }
-.pg-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform .18s ease;
-}
-
-/* Sutil hover que ya no interfiere con las flechas */
-.pg-item:hover img { transform: scale(1.02); }
-
-/* Opcional: borde sutil para separar tiles en fondos claros */
-.pg-item::after {
-  content: "";
+.ag-backdrop{
   position: absolute;
   inset: 0;
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04);
-  pointer-events: none;
+  background: #F7D34A;            /* amarillo sólido */
+  z-index: 10000;                 /* detrás del contenido del gate */
 }
-/* === FULL-BLEED PARA AGRUPACIONES (sin espacios internos) === */
+.ag-content{
+  position: relative;
+  z-index: 10001;                 /* delante del backdrop */
+}
+.ag-logo-wrap { margin:18px auto 10px; display:grid; place-items:center; }
+.ag-logo { height:clamp(86px, 12vw, 118px); display:block; }
+.ag-underline { width:min(680px, 80vw); height:2px; background:rgba(0,0,0,.14); margin-top:10px; }
 
-/* 1) Sin separación entre tiles */
-.pg-card .pg-grid {
-  gap: 0;                 /* sin gutters */
-  height: var(--group-h); /* ya lo definiste arriba */
-  align-items: stretch;
-  grid-auto-rows: 1fr;
+.ag-split { flex:1; width:100%; display:grid; grid-template-columns:1fr 1fr; }
+.ag-side {
+  position:relative; display:grid; place-items:center; cursor:pointer;
+  border:0; background:transparent; overflow:hidden; isolation:isolate;
+  transition:transform .22s ease;
+}
+.ag-left { border-right:1px solid rgba(0,0,0,.08); }
+.ag-label { font:800 clamp(22px,4.5vw,40px)/1.05 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; letter-spacing:.5px; transition:transform .18s ease; }
+.ag-side::before {
+  content:""; position:absolute; inset:0; background:rgba(255,255,255,0);
+  transition:background .22s ease, box-shadow .22s ease;
+}
+.ag-side:hover::before { background:rgba(255,255,255,.18); box-shadow:inset 0 0 0 1px rgba(0,0,0,.07), 0 18px 50px rgba(0,0,0,.12); }
+.ag-side:hover { transform:scale(1.01); }
+.ag-side:hover .ag-label { transform:scale(1.035); }
+
+
+/* Mientras el gate esté montado, sin scroll y “apagamos” la UI detrás */
+body.ag-open{ overflow: hidden; }
+body.ag-open .cp-hero,
+body.ag-open .cp-header,
+body.ag-open .page{ visibility: hidden; }
+
+/* =========================
+   SELLER PAGE
+   ========================= */
+.cp-seller-page{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:0 min(4vw, 28px) 56px;
+  display:flex;
+  flex-direction:column;
+  gap:48px;
+  position:relative;
+  overflow:hidden;
 }
 
-/* 2) Cada tile ocupa 100% de su celda y SIN bordes redondeados internos
-      (el radio queda sólo en la tarjeta .ps-card) */
-.pg-item {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 0;
+.seller-hero{
+  position:relative;
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+  height:clamp(240px, 42vh, 420px);
+  background:#161616 center/cover no-repeat;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+.seller-hero__center{
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.seller-hero__plate{
+  width:min(170px, 22vw);
+  aspect-ratio:2/1;
+  background: rgba(247, 211, 74, 0.5);
+  display:grid;
+  place-items:center;
+}
+.seller-hero__logo{
+  height:min(60px, 10vw);
+  display:block;
+}
+
+.seller-heading{
+  display:grid;
+  gap:12px;
+  text-align:center;
+  padding:0 12px;
+}
+.seller-heading__title{
+  margin:0;
+  font-size:clamp(38px, 8vw, 68px);
+  line-height:1.05;
+  letter-spacing:.02em;
+}
+
+.seller-products{ display:flex; flex-direction:column; gap:18px; }
+.seller-products h2,
+.seller-location h2,
+.seller-more h2{
+  margin:0;
+  font-size:20px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.seller-products__grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+  gap:22px;
+}
+.seller-product{
+  display:flex;
+  flex-direction:column;
+  text-decoration:none;
+  background:#fff;
+  border-radius:22px;
+  overflow:hidden;
+  border:1px solid #f0f0f0;
+  box-shadow:0 16px 34px rgba(0,0,0,.12);
+  transition:transform .18s ease, box-shadow .18s ease;
+  color:#111;
+}
+.seller-product:hover{
+  transform:translateY(-4px);
+  box-shadow:0 22px 42px rgba(0,0,0,.16);
+}
+.seller-product__thumb{ aspect-ratio:1/1; width:100%; background:#f8f8f8; }
+.seller-product__thumb img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .18s ease; }
+.seller-product:hover .seller-product__thumb img{ transform:scale(1.03); }
+.seller-product__info{ padding:16px 18px 20px; display:flex; flex-direction:column; gap:6px; }
+.seller-product__name{ font-weight:700; font-size:17px; }
+.seller-product__price{ font-weight:900; font-size:19px; }
+.seller-products__empty{
+  grid-column:1 / -1;
+  text-align:center;
+  padding:26px;
+  border:1px dashed rgba(0,0,0,.12);
+  border-radius:18px;
+  color:#6b7280;
+  background:#fff;
+}
+
+.seller-location__map{
+  position:relative;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 18px 38px rgba(0,0,0,.18);
+  aspect-ratio:16 / 5;
+  margin-top: 20px;
+}
+.seller-location__map iframe{ width:100%; height:100%; border:0; }
+.seller-location__placeholder,
+.seller-more__placeholder{
+  margin:0;
+  padding:18px 20px;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 10px 24px rgba(0,0,0,.08);
+  color:#6b7280;
+}
+
+.seller-more__actions{
+  display:flex;
+  gap:14px;
+  margin-top: 20px;
+  flex-wrap:wrap;
+}
+.seller-social{
+  width:102px;
+  height:102px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  box-shadow:0 16px 32px rgba(0,0,0,.2);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.seller-social svg{ width:52px; height:52px; display:block; }
+.seller-social:hover{
+  transform:translateY(-3px) scale(1.03);
+  box-shadow:0 24px 38px rgba(0,0,0,.22);
+}
+.seller-social--facebook{ background:#1877f2; }
+.seller-social--instagram{
+  background:linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+}
+.seller-social--whatsapp{ background:#25D366; }
+
+.seller-back{
+  align-self:center;
+  background:transparent;
+  border:0;
+  color:#6b7280;
+  font-size:12px;
+  cursor:pointer;
+}
+.seller-back:hover{ text-decoration:underline; }
+
+@media (max-width:820px){
+  .seller-hero__plate{ width:160px; border-radius:22px; }
+  .seller-heading__title{ font-size:clamp(30px, 10vw, 48px); }
+  .seller-products__grid{ gap:16px; }
+}
+
+/* Estado de carga */
+.loading{ padding:24px; font-weight:600; }
+.ag-label{height:72px; display:flex; align-items: center;}
+.ContHead{
+width:90%;
+display:flex;
+flex-direction:row;
+}
+.cp-aud-pill{
+margin-top:10px}
+/* =========================
+   PRODUCT SLIDER (ps- / pg-)
+   ========================= */
+
+/* Raíz del slider */
+.ps-root{
+  position:relative;
+  --gap:12px;
+  padding:0 16px;                 /* margen externo del carrusel */
+}
+
+/* Pista desplazable */
+.ps-track{
+  display:flex;
+  overflow:auto;
+  gap:var(--gap);
+  scroll-snap-type:x mandatory;
+  padding:0;                       /* sin padding interno */
+  scrollbar-width:none;            /* Firefox */
+}
+.ps-track::-webkit-scrollbar{ display:none; }
+
+/* Cada slide */
+.ps-card{
+  flex:0 0 100%;                   /* 1 slide por página (agrupaciones) */
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+/* Navegación (flechas) */
+.ps-nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:36px; height:36px;
+  border-radius:50%;
+  border:0;
+  background:#000; color:#fff;
+  z-index:20;                      /* por encima del contenido */
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  pointer-events:auto;
+}
+.ps-nav.prev{ left:8px; }
+.ps-nav.next{ right:8px; }
+
+/* Altura uniforme de las agrupaciones (responsive) */
+.ps-root{ --group-h: clamp(180px, 28vh, 320px); }
+
+/* Grid interno de cada agrupación */
+.pg-card .pg-grid{
+  display:grid;
+  gap:12px;
+  height:var(--group-h);
+  align-items:stretch;
+  grid-auto-rows:1fr;
+}
+
+/* Layout según cantidad de productos */
+.pg-card.pg-n-1 .pg-grid{ grid-template-columns:1fr; }
+.pg-card.pg-n-2 .pg-grid{ grid-template-columns:repeat(2,1fr); }
+.pg-card.pg-n-3 .pg-grid{ grid-template-columns:repeat(3,1fr); }
+.pg-card.pg-n-4 .pg-grid{ grid-template-columns:repeat(2,1fr); }
+.pg-card.pg-n-auto .pg-grid{ grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); }
+
+/* Tile/producto */
+.pg-item{
+  display:block;
+  border-radius:12px;
+  overflow:hidden;
+  height:100%;
+}
+.pg-item img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transition:transform .18s ease;
+}
+.pg-item:hover img{ transform:scale(1.02); }
+
+/* Responsive: compactar 3 en 2 columnas en mobile angosto */
+@media (max-width:599px){
+  .pg-card.pg-n-3 .pg-grid{ grid-template-columns:repeat(2,1fr); }
+}
+
+/* --- Variante “full-bleed” sin gaps internos (si la usas) --- */
+.pg-card.pg-fullbleed .pg-grid{ gap:0; }
+.pg-card.pg-fullbleed .pg-item{ border-radius:0; }
+
+/* === ProductSlider: full-bleed, sin espacios === */
+.ps-root{
+  padding: 0;                 /* sin padding externo */
+  --gap: 0;                   /* sin separación entre slides */
+}
+
+.ps-track{
+  gap: 0;                     /* sin separación entre slides */
+  padding: 0;
+}
+
+.ps-card{
+  flex: 0 0 100%;             /* cada slide ocupa todo el ancho del contenedor */
+  border-radius: 0;           /* sin bordes redondeados para que “peguen” */
   overflow: hidden;
 }
 
-/* 3) La imagen rellena todo y no deja “pelos” blancos */
-.pg-item img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Dentro de cada agrupación: ocupamos todo el ancho disponible */
+.pg-card .pg-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0;
+  width:100%;
+  height:auto;
 }
 
-/* 4) Desactivar zoom en hover para que no invada tiles vecinos (sin gap) */
-.pg-item:hover img { transform: none; }
-
-/* 5) Asegurar que la tarjeta contenedora recorta los bordes externos */
-.ps-card {
-  border-radius: 12px;
-  overflow: hidden;
+/* Cada tile crece para evitar “huecos” entre productos */
+.pg-item{
+  flex:1 1 220px;
+  min-width:180px;
+  border-radius:0;
+  aspect-ratio:1 / 1;
+  height:auto;
+}
+.pg-item img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
-/* 6) Flechas siempre por encima (por si el hover vuelve en el futuro) */
-.ps-nav { z-index: 20; }
-/* --- Edge-to-edge global para el slider --- */
-.ps-root { padding-left: 0; padding-right: 0; }   /* elimina márgenes laterales */
-.ps-track { padding-left: 0; padding-right: 0; }  /* ya era 0, reforzamos */
-.ps-card  { border-radius: 0; }                    /* que las fotos peguen al borde */
+/* Opcional: ocupar el ancho TOTAL de la pantalla
+   incluso si el slider vive dentro de un contenedor centrado */
+.ps-root.ps-viewport{
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+.page{
+/* :D */
+  animation: pageFade .45s cubic-bezier(.22,.61,.36,1); /* sin 'both' */
+}

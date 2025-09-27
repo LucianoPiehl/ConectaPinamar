@@ -8,4 +8,9 @@ public class SellerDTO {
   public String contactEmail;
   public String imageUrl;
   public Long visitCount;
+  public String facebookUrl;
+  public String instagramUrl;
+  public String whatsappUrl;
+  public Double latitude;
+  public Double longitude;
 }

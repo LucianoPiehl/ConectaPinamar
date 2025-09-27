@@ -14,7 +14,10 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
                         .allowedOrigins("*")
-                        .allowedMethods("GET","POST","PUT","DELETE","OPTIONS");
+                        .allowedMethods("GET","POST","PUT","DELETE","OPTIONS")
+                        // 👇 importante para que el preflight permita X-Audience
+                        .allowedHeaders("*")
+                        .exposedHeaders("X-Audience");
             }
         };
     }

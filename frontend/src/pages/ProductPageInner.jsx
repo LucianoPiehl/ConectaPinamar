@@ -31,7 +31,7 @@ export default function ProductPageInner({ id }) {
       : '';
 
   return (
-    <div className="pp-wrap">
+    <div className="pp-wrap page">
       {/* Cinta amarilla con logo centrado */}
       <div className="pp-topbar">
         <img src="/logo.png" alt="Conecta Pinamar" className="pp-logo" />

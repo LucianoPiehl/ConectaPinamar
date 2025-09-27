@@ -15,13 +15,18 @@ public class Section {
     private String name;
 
     @Column(nullable=false, unique=true)
-    private String slug;          // p.ej. "solo-semana", "2x1"
+    private String slug;          // p.ej. "solo-semana", "2x1", "10%"
 
     @Column(name="order_index")
     private Integer orderIndex = 0;
 
     @Column(nullable=false)
     private Boolean enabled = true;
+
+    /** Nueva columna: audiencia a la que apunta esta sección. */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable=false)
+    private Audience audience = Audience.ALL;
 
     // --- getters/setters ---
     public Long getId() { return id; }
@@ -33,4 +38,6 @@ public class Section {
     public void setOrderIndex(Integer orderIndex) { this.orderIndex = orderIndex; }
     public Boolean getEnabled() { return enabled; }
     public void setEnabled(Boolean enabled) { this.enabled = enabled; }
+    public Audience getAudience() { return audience; }
+    public void setAudience(Audience audience) { this.audience = audience; }
 }

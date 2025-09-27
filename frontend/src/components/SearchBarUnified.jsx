@@ -178,11 +178,20 @@ export default function SearchBarUnified({
           background:#fff; border:1px solid #ececec; border-radius:14px;
           box-shadow:0 14px 32px rgba(0,0,0,.18); overflow:hidden; z-index:5;
           max-height:340px; overflow-y:auto;
+          animation:cpSearchReveal .22s cubic-bezier(.22,.61,.36,1);
         }
         .cp-search-item{
           display:flex; align-items:center; gap:10px;
           padding:10px 12px; text-decoration:none; color:#111;
+          animation:cpSearchItem .28s ease both;
         }
+        .cp-search-item:nth-child(2){ animation-delay:40ms; }
+        .cp-search-item:nth-child(3){ animation-delay:80ms; }
+        .cp-search-item:nth-child(4){ animation-delay:120ms; }
+        .cp-search-item:nth-child(5){ animation-delay:160ms; }
+        .cp-search-item:nth-child(6){ animation-delay:200ms; }
+        .cp-search-item:nth-child(7){ animation-delay:240ms; }
+        .cp-search-item:nth-child(8){ animation-delay:280ms; }
         .cp-search-item:hover{ background:#fafafa; }
         .cp-search-item .thumb{
           width:42px; height:32px; object-fit:cover;
@@ -190,6 +199,16 @@ export default function SearchBarUnified({
         }
         .cp-search-item .b{ font-weight:700; }
         .cp-search-item .i{ font-style:italic; }
+
+        @keyframes cpSearchReveal{
+          from{ opacity:0; transform:translateY(-6px); }
+          to{ opacity:1; transform:translateY(0); }
+        }
+
+        @keyframes cpSearchItem{
+          from{ opacity:0; transform:translateY(-6px); }
+          to{ opacity:1; transform:translateY(0); }
+        }
       `}</style>
     </form>
   );

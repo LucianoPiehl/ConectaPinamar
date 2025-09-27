@@ -39,7 +39,7 @@ export default function CategoryPage() {
   const banner = cat?.imageBanner || cat?.imageUrl || '';
 
   return (
-    <div className="cp-cat">
+    <div className="cp-cat page">
       {/* Banner */}
       <section
         className="hero"

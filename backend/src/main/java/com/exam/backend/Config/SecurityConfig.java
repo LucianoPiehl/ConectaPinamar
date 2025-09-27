@@ -22,6 +22,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        // 👇 habilita CORS para que tome la config de CorsConfig
+        http.cors(Customizer.withDefaults());
+
         http.csrf(csrf -> csrf.disable());
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/uploads/**").permitAll()
@@ -42,7 +45,6 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // DEV: texto plano para simplicidad. En prod: usar BCryptPasswordEncoder.
         return NoOpPasswordEncoder.getInstance();
     }
 }

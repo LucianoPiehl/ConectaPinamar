@@ -22,6 +22,13 @@ public class Seller {
     private String contactEmail;
     private String imageUrl;
 
+    private String facebookUrl;
+    private String instagramUrl;
+    private String whatsappUrl;
+
+    private Double latitude;
+    private Double longitude;
+
     @Column(nullable = false)
     private Long visitCount = 0L;
 
@@ -48,4 +55,19 @@ public class Seller {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public Long getVisitCount() { return visitCount; }
     public void setVisitCount(Long visitCount) { this.visitCount = visitCount; }
+
+    public String getFacebookUrl() { return facebookUrl; }
+    public void setFacebookUrl(String facebookUrl) { this.facebookUrl = facebookUrl; }
+
+    public String getInstagramUrl() { return instagramUrl; }
+    public void setInstagramUrl(String instagramUrl) { this.instagramUrl = instagramUrl; }
+
+    public String getWhatsappUrl() { return whatsappUrl; }
+    public void setWhatsappUrl(String whatsappUrl) { this.whatsappUrl = whatsappUrl; }
+
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
 }

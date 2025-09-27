@@ -61,6 +61,16 @@
         /* Mini grid de thumbs en listado de grupos */
         .gthumbs{display:flex;gap:6px;flex-wrap:wrap}
         .gthumbs img{width:36px;height:28px;object-fit:cover;border-radius:6px;border:1px solid #2a3142;background:#0b0d13}
+
+        .table-wrap{overflow-x:auto;margin-bottom:8px;}
+
+        .sellers-form{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0;}
+        .sellers-form .col{flex:1 1 260px;display:flex;flex-direction:column;gap:10px;min-width:240px;}
+        .sellers-form .coord{display:flex;gap:8px;}
+        .sellers-form .coord input{flex:1;}
+        .sellers-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:10px;}
+        .sellers-search{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+        .sellers-search input{flex:1 1 220px;min-width:180px;}
     </style>
 </head>
 <body>
@@ -110,16 +120,31 @@
     <section id="sellers" class="panel">
         <div class="card">
             <h2>Sellers · Crear</h2>
-            <div class="row">
-                <input id="sName" placeholder="Nombre">
-                <input id="sDesc" placeholder="Descripción" style="min-width:240px">
-                <input id="sLoc" placeholder="Ubicación">
-                <input id="sPhone" placeholder="Teléfono">
-                <input id="sMail" placeholder="Email">
-                <input id="sFile" type="file" accept="image/*">
+            <div class="sellers-form">
+                <div class="col">
+                    <input id="sName" placeholder="Nombre">
+                    <input id="sDesc" placeholder="Descripción" style="min-width:240px">
+                    <input id="sLoc" placeholder="Ubicación">
+                    <input id="sPhone" placeholder="Teléfono">
+                    <input id="sMail" placeholder="Email">
+                </div>
+                <div class="col">
+                    <input id="sFacebook" placeholder="URL Facebook">
+                    <input id="sInstagram" placeholder="URL Instagram">
+                    <input id="sWhatsapp" placeholder="URL WhatsApp">
+                    <div class="coord">
+                        <input id="sLat" type="number" step="0.000001" placeholder="Lat">
+                        <input id="sLng" type="number" step="0.000001" placeholder="Lng">
+                    </div>
+                    <input id="sFile" type="file" accept="image/*">
+                </div>
+            </div>
+            <div class="row sellers-actions">
                 <button class="btn primary" id="sCreate">Crear</button>
-                <input id="sQ" placeholder="Buscar…" style="margin-left:auto">
-                <button class="btn ghost" id="sReload">Buscar</button>
+                <div class="sellers-search">
+                    <input id="sQ" placeholder="Buscar…">
+                    <button class="btn ghost" id="sReload">Buscar</button>
+                </div>
             </div>
         </div>
         <div class="card">
@@ -378,7 +403,12 @@
           <td><input data-id="${s.id}" class="sL" value="${esc(s.location||'')}"></td>
           <td><input data-id="${s.id}" class="sP" value="${esc(s.contactPhone||'')}"></td>
           <td><input data-id="${s.id}" class="sE" value="${esc(s.contactEmail||'')}"></td>
-          <td>${s.imageUrl?`<img src="${esc(s.imageUrl)}" class="thumb">`:''}<br><input type="file" data-id="${s.id}" class="sF" accept="image/*"></td>
+          <td><input data-id="${s.id}" class="sFB" value="${esc(s.facebookUrl||'')}"></td>
+          <td><input data-id="${s.id}" class="sIG" value="${esc(s.instagramUrl||'')}"></td>
+          <td><input data-id="${s.id}" class="sWA" value="${esc(s.whatsappUrl||'')}"></td>
+          <td><input data-id="${s.id}" class="sLat" type="number" step="0.000001" value="${s.latitude??''}"></td>
+          <td><input data-id="${s.id}" class="sLng" type="number" step="0.000001" value="${s.longitude??''}"></td>
+          <td>${s.imageUrl?`<img src="${esc(s.imageUrl)}" class="thumb">`:''}<br><input type="file" data-id="${s.id}" class="sF" data-current="${esc(s.imageUrl||'')}" accept="image/*"></td>
           <td>
             <button class="btn sUp" data-id="${s.id}">Guardar</button>
             <button class="btn bad sDel" data-id="${s.id}">Borrar</button>
@@ -392,9 +422,28 @@
           const location=container.querySelector(`.sL[data-id="${id}"]`).value;
           const contactPhone=container.querySelector(`.sP[data-id="${id}"]`).value;
           const contactEmail=container.querySelector(`.sE[data-id="${id}"]`).value;
-          const file=container.querySelector(`.sF[data-id="${id}"]`).files[0];
+          const facebookUrl=container.querySelector(`.sFB[data-id="${id}"]`).value;
+          const instagramUrl=container.querySelector(`.sIG[data-id="${id}"]`).value;
+          const whatsappUrl=container.querySelector(`.sWA[data-id="${id}"]`).value;
+          const latRaw=container.querySelector(`.sLat[data-id="${id}"]`).value;
+          const lngRaw=container.querySelector(`.sLng[data-id="${id}"]`).value;
+          const fileInput=container.querySelector(`.sF[data-id="${id}"]`);
+          const file=fileInput.files[0];
           let url=null; if(file) url=(await S.upload(file)).url;
-          await S.api(`/api/admin/sellers/${id}`, { method:'PUT', body:JSON.stringify({ name, description, location, contactPhone, contactEmail, imageUrl:url }) });
+          const imageUrl = url ?? (fileInput.dataset.current || null);
+          await S.api(`/api/admin/sellers/${id}`, { method:'PUT', body:JSON.stringify({
+            name,
+            description,
+            location,
+            contactPhone,
+            contactEmail,
+            facebookUrl,
+            instagramUrl,
+            whatsappUrl,
+            latitude: latRaw ? Number(latRaw) : null,
+            longitude: lngRaw ? Number(lngRaw) : null,
+            imageUrl
+          }) });
           sellers.reload();
         });
         container.querySelectorAll('.sDel').forEach(btn=>btn.onclick=async e=>{
@@ -407,19 +456,33 @@
         const q = el('sQ').value.trim();
         const data = await sellers.list(q);
         const html = `
-          <table>
-            <thead><tr><th>ID</th><th>Nombre</th><th>Desc</th><th>Ubicación</th><th>Tel</th><th>Email</th><th>Imagen</th><th>Acciones</th></tr></thead>
-            <tbody>${data.content.map(sellers.row).join('')}</tbody>
-          </table>`;
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Nombre</th><th>Desc</th><th>Ubicación</th><th>Tel</th><th>Email</th><th>Facebook</th><th>Instagram</th><th>WhatsApp</th><th>Lat</th><th>Lng</th><th>Imagen</th><th>Acciones</th></tr></thead>
+              <tbody>${data.content.map(sellers.row).join('')}</tbody>
+            </table>
+          </div>`;
         el('sTable').innerHTML = html;
         sellers.bind(el('sTable'));
       }
     };
     el('sCreate').onclick = async ()=>{
       let url=null; const f=el('sFile').files[0]; if(f) url=(await S.upload(f)).url;
-      const body={ name:el('sName').value, description:el('sDesc').value, location:el('sLoc').value, contactPhone:el('sPhone').value, contactEmail:el('sMail').value, imageUrl:url };
+      const body={
+        name:el('sName').value,
+        description:el('sDesc').value,
+        location:el('sLoc').value,
+        contactPhone:el('sPhone').value,
+        contactEmail:el('sMail').value,
+        facebookUrl:el('sFacebook').value,
+        instagramUrl:el('sInstagram').value,
+        whatsappUrl:el('sWhatsapp').value,
+        latitude:el('sLat').value ? Number(el('sLat').value) : null,
+        longitude:el('sLng').value ? Number(el('sLng').value) : null,
+        imageUrl:url
+      };
       await S.api('/api/admin/sellers', { method:'POST', body:JSON.stringify(body) });
-      ['sName','sDesc','sLoc','sPhone','sMail'].forEach(id=>el(id).value=''); el('sFile').value='';
+      ['sName','sDesc','sLoc','sPhone','sMail','sFacebook','sInstagram','sWhatsapp','sLat','sLng'].forEach(id=>el(id).value=''); el('sFile').value='';
       sellers.reload();
     };
     el('sReload').onclick = ()=>sellers.reload();

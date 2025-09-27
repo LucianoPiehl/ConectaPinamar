@@ -1,4 +1,27 @@
 import axios from 'axios';
+import { getAudience } from '../utils/audience';
+
+// 1) Set inicial (por si ya existe cookie al cargar)
+const audInitial = typeof window !== 'undefined' ? getAudience() : null;
+if (audInitial) {
+  axios.defaults.headers.common['X-Audience'] = audInitial;
+}
+
+// 2) Interceptor: asegura que cada request lleve la audiencia actual
+axios.interceptors.request.use((config) => {
+  try {
+    const aud = getAudience();
+    if (aud) {
+      config.headers = config.headers || {};
+      config.headers['X-Audience'] = aud;
+    } else {
+      if (config.headers && 'X-Audience' in config.headers) {
+        delete config.headers['X-Audience'];
+      }
+    }
+  } catch (_) { /* noop */ }
+  return config;
+});
 
 export async function searchAll(q, signal) {
   if (!q?.trim()) return { products: [], categories: [], sellers: [] };
@@ -16,58 +39,20 @@ export async function getHomeProducts(limit = 12) {
   return data;
 }
 
-export async function getSections() {
-  try {
-    const { data } = await axios.get('/api/sections');
-    return data; // [{ id, name, slug, orderIndex, enabled }]
-  } catch (err) {
-    console.error('[getSections] ERROR:', err?.response?.status, err?.response?.data || err?.message);
-    return [];
-  }
+export async function getSections(){
+  const { data } = await axios.get('/api/sections');
+  return data;
 }
 
-/**
- * Obtiene grupos de una sección.
- * - Si pasás un número (o un objeto con .id), consulta por ID: /api/sections/:id/groups
- * - Si pasás un string (slug), intenta query ?slug=... y luego fallback por path /:slug/groups
- */
-export async function getSectionGroups(sectionRef) {
-  // normalizo refs
-  const id   = typeof sectionRef === 'object' && sectionRef?.id != null
-    ? sectionRef.id
-    : (typeof sectionRef === 'number' ? sectionRef : null);
-
-  const slug = typeof sectionRef === 'object' && sectionRef?.slug
-    ? sectionRef.slug
-    : (typeof sectionRef === 'string' ? sectionRef : null);
-
-  // 1) Preferir SIEMPRE por ID (evita problemas con % y demás)
-  if (id != null) {
-    try {
-      const { data } = await axios.get(`/api/sections/${id}/groups`);
-      return data;
-    } catch (err) {
-      console.error('[getSectionGroups:id] ERROR:', id, err?.response?.status, err?.response?.data || err?.message);
-    }
+// Robust endpoint for groups (works with special chars in slug)
+export async function getSectionGroups(slug){
+  try {
+    const { data } = await axios.get('/api/sections/groups', { params: { slug } });
+    return data;
+  } catch (e) {
+    const { data } = await axios.get(`/api/sections/${encodeURIComponent(slug)}/groups`);
+    return data;
   }
-
-  // 2) Si no hubo ID (o falló), intento por query param (si el backend lo tiene)
-  if (slug != null) {
-    try {
-      const { data } = await axios.get('/api/sections/groups', { params: { slug } });
-      return data;
-    } catch {
-      // 3) Fallback final al path con encodeURIComponent
-      try {
-        const { data } = await axios.get(`/api/sections/${encodeURIComponent(slug)}/groups`);
-        return data;
-      } catch (e2) {
-        console.error('[getSectionGroups:slug] ERROR:', slug, e2?.response?.status, e2?.response?.data || e2?.message);
-      }
-    }
-  }
-
-  return [];
 }
 
 export const getCategoryProducts = async (id) =>

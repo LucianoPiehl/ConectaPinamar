@@ -64,7 +64,7 @@ export default function ProductSlider({ id, groups = [], images = [] }) {
     : images.map(img => ({ id: img.id, products: [img] }));
 
   return (
-    <div className="ps-root" id={id} ref={rootRef}>
+    <div className="ps-root ps-viewport" id={id} ref={rootRef}>
       <button className="ps-nav prev" onClick={() => go(-1)} aria-label="Anterior">‹</button>
 
       <div className="ps-track" ref={trackRef}>
